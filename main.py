@@ -14,37 +14,31 @@ def selfdestruction(dummy, students):
     ls = dummy.roomate_ids.copy()
     dummy.roomate_ids = []
 
-    for dummy_ids in ls:
-        dummy_friend = students.get(dummy_ids)
-        if dummy_friend != None and len(dummy_friend.roomate_ids) != 0:
+    for dummy_id in ls:
+        dummy_friend = students.get(dummy_id)
+        if dummy_friend != None and len(dummy_friend.roomate_ids) != 0 and dummy_friend.roomate_ids.count(dummy.id) > 0:
             selfdestruction(dummy_friend, students)
-        
 
 
-# nu = Dormitory()
-# populator = Populator("listcsv.csv", nu)
-# print(nu)
 
-# print("Number of students:", nu.num_students())
+nu = Dormitory()
+populator = Populator("listcsv.csv", nu)
 
-# print(populator.students["202048825"].room)
 
-# populator.to_csv()
-students = {}
-sst = Student("A", "Alim", "Male", "-", "-", ["B", "C"])
-students["A"] = sst
-students["B"] = (Student("B", "Alim", "Male", "-", "-", ["D"]))
-students["C"] = (Student("C", "Alim", "Male", "-", "-", ["A"]))
-students["D"] = (Student("D", "Alim", "Male", "-", "-", ["B"]))
-students["M"] = (Student("M", "Alim", "Male", "-", "-", []))
-for st in students.values():
+populator.students["A"] = Student("A", "Alim", "Male", "-", "-", ["B", "A"])
+populator.students["B"] = Student("B", "Alim", "Male", "-", "-", ["A", "B"])
+populator.students["C"] = Student("C", "Alim", "Male", "-", "-", ["B", "D"])
+populator.students["D"] = Student("D", "Alim", "Male", "-", "-", ["M"])
+populator.students["M"] = Student("M", "Alim", "Male", "-", "-", ["D"])
+for st in populator.students.values():
 	print(st)
 
-selfdestruction(sst, students)
+populator.pair()
+print()
 
+for st in populator.students.values():
+	print(st, st.roomates)
 
-for st in students.values():
-	print(st)
 
 # selfdestruction(students["M"], students)
 

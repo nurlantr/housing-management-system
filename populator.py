@@ -4,9 +4,6 @@ class Populator:
     def __init__(self, file, dorm):
         self.dorm = dorm
         self.students = {}
-        self.read(file)
-        self.pair()
-        self.populate()
 
     def read(self, file):
         with open(file) as f:
@@ -24,30 +21,44 @@ class Populator:
                 else:
                     self.students[line[0]] = Student(line[0], line[1], line[2], line[3], line[4], [])
 
+    def match(self, A, B, roomate_num):
+        roomate_is_free = (len(B.roomates) == 0)
+        roomate_has_roomate_num = (len(B.roomate_ids) == roomate_num)
+        
+        if roomate_is_free and roomate_has_roomate_num:
+            id_match = (B.roomate_ids.count(A.id) == 1) and (A.roomate_ids.count(B.id) == 1)
+            gender_match = (B.gender == A.gender)
+            
+            # ------------------
+            # Degree year match!
+            # ------------------          
+
+            if id_match and gender_match:
+                return True
+            else:
+                return False
+
     def pair(self):
         for student in self.students.values():
-            if len(student.roomate_ids) == 1:
-                intended_roomate = self.students.get(student.roomate_ids[0])
-                if intended_roomate == None:
-                    self.selfdestruction(student)
-                    continue
-                roomate_is_free = len(intended_roomate.students)
-                if len(intended_roomate.roomate_ids) == 1:
-                    different_id = (intended_roomate.id != student.id)
-                    id_match = (intended_roomate.roomate_ids[0] == student.id)
-                    gender_match = (intended_roomate.gender == student.gender)
-                    
-                    if different_id and id_match and gender_match:
-                        student.students.append(intended_roomate)
-                        intended_roomate.append(student)
+            if len(student.roomates) != 0: continue
+            
+            if len(student.roomate_ids) == 1 and (student.roomate_ids[0] in self.students) and (student.id != student.roomate_ids[0]):
+                intended_roomate = self.students[student.roomate_ids[0]]
 
-                else:
-                    self.selfdestruction(student)
+                if self.match(student, intended_roomate, 1):
+                    student.roomates.append(intended_roomate)
+                    intended_roomate.roomates.append(student)
 
+            elif len(student.roomate_ids) == 2 and (student.roomate_ids[0] in self.students) and (student.roomate_ids[1] in self.students) and len({student.id, student.roomate_ids[0], student.roomate_ids[1]}) == 3:
+                intended_roomate1 = self.students[student.roomate_ids[0]]
+                intended_roomate2 = self.students[student.roomate_ids[1]]
+                if self.match(student, intended_roomate1, 2) and self.match(student,intended_roomate2, 2) and self.match(intended_roomate1, intended_roomate2, 2):
+                    student.roomates.extend([intended_roomate1, intended_roomate2])
+                    intended_roomate1.roomates.extend([intended_roomate2, student])
+                    intended_roomate2.roomates.extend([intended_roomate1, student])
 
-
-
-
+            if len(student.roomates) == 0:
+                self.selfdestruction(student)
 
     def selfdestruction(self, dummy):
         if len(dummy.roomate_ids) == 0:
@@ -58,10 +69,10 @@ class Populator:
 
         for dummy_ids in ls:
             dummy_friend = self.students.get(dummy_ids)
-            if dummy_friend != None and len(dummy_friend.roomate_ids) != 0:
-                selfdestruction(dummy_friend)
-
-    def pair1(self):
+            if dummy_friend != None and len(dummy_friend.roomate_ids) != 0 and dummy_friend.roomate_ids.count(dummy.id) > 0:
+                self.selfdestruction(dummy_friend)
+    # старый пейр
+    def pair_betta(self):
         for student in self.students.values():
             intended_roomate = self.students.get(student.roomate_id)
             roomate_isnt_assigned = (student.roomate == None)
