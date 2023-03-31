@@ -1,7 +1,6 @@
 class Room:
 
-    def __init__(self, block_number, room_number, capacity = 2) -> None:
-        self.block = block_number
+    def __init__(self, room_number: int, capacity = 2) -> None:
         self.room_number = room_number
         self.students = []
         self.capacity = capacity

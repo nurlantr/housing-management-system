@@ -73,25 +73,6 @@ class Populator:
             dummy_friend = self.students.get(dummy_ids)
             if dummy_friend != None and len(dummy_friend.roomate_ids) != 0 and dummy_friend.roomate_ids.count(dummy.id) > 0:
                 self.selfdestruction(dummy_friend)
-    # старый пейр
-    def pair_betta(self):
-        for student in self.students.values():
-            intended_roomate = self.students.get(student.roomate_id)
-            roomate_isnt_assigned = (student.roomate == None)
-            has_roomate_id = (student.roomate_id != None)
-            id_exists = (intended_roomate != None)
-
-            if has_roomate_id and roomate_isnt_assigned and id_exists:
-                intended_roomate_is_free = (intended_roomate.roomate == None)
-                id_match = (intended_roomate.roomate_id != None and intended_roomate.roomate_id == student.id)
-                gender_match = (intended_roomate.gender == student.gender)
-
-                if intended_roomate_is_free and id_match and gender_match:
-                    student.roomate = intended_roomate
-                    intended_roomate.roomate = student
-            
-            if student.roomate == None:
-                student.roomate_id = None
 
     # def to_csv(self):
     #     f = open("output.csv", "w")

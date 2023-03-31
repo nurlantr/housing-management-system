@@ -1,11 +1,13 @@
-from block import Block
+from room import Room
 class Dormitory:
 
     def __init__(self):
-        self.blocks = {}
+        self.rooms = {}
         self.num_blocks = 2
-        for i in range(1, self.num_blocks + 1):
-            self.blocks[f"D{i}"] = Block(f"D{i}")
+        for block_idx in range(1, self.num_blocks + 1):
+            for i in range(2, 13):
+                for j in range(1, 29):
+                    self.rooms[f"D{block_idx}{i*100 + j}"] = Room(f"D{block_idx}{i*100 + j}")
 
     def __str__(self):
         result = "Dormitory:\n"
