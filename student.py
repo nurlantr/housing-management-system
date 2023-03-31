@@ -1,6 +1,7 @@
+from typing import List
 class Student:
 
-    def __init__(self, id, name, gender, degree, year, roomate_ids):
+    def __init__(self, id: str, name: str, gender: str, degree: int, year: str, roomate_ids: List[str]):
         self.id = id
         self.name = name
         self.gender = gender

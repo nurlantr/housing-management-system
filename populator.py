@@ -1,7 +1,9 @@
+from typing import List
 from student import Student
 from random import randint
+from dormitory import Dormitory
 class Populator:
-    def __init__(self, file, dorm):
+    def __init__(self, file, dorm : Dormitory):
         self.dorm = dorm
         self.students = {}
 
@@ -21,7 +23,7 @@ class Populator:
                 else:
                     self.students[line[0]] = Student(line[0], line[1], line[2], line[3], line[4], [])
 
-    def match(self, A, B, roomate_num):
+    def match(self, A: Student, B: Student, roomate_num: int):
         roomate_is_free = (len(B.roomates) == 0)
         roomate_has_roomate_num = (len(B.roomate_ids) == roomate_num)
         
@@ -91,54 +93,25 @@ class Populator:
             if student.roomate == None:
                 student.roomate_id = None
 
-    def populate(self):
-        used_rooms = set()
-        pending_rooms = []
-        for student in self.students.values():
-            if student.room == None:
-                if student.roomate != None:
-                    self.assign(student, used_rooms)
-                else:
-                    if (len(pending_rooms) != 0  and pending_rooms[0].gender == student.gender) or (len(pending_rooms) == 2 and pending_rooms[1].gender == student.gender):
-                        if pending_rooms[0].gender == student.gender:
-                            room = pending_rooms[0]
-                            del pending_rooms[0]
-                        else:
-                            room = pending_rooms[1]
-                            del pending_rooms[1]
+    # def to_csv(self):
+    #     f = open("output.csv", "w")
+    #     f.write("id,name,block,room,place\n")
+    #     for block in self.dorm.blocks.values():
+    #         for room in block.rooms.values():
+    #             for i in range(len(room.students)):
+    #                 s = room.students[i]
+    #                 f.write(f"{s.id},{s.name},{s.room.block},{s.room.room_number},{i+1}\n")
 
-                        room.students[0].roomate = student
-                        student.roomate = room.students[0]
-                        room.students.append(student)
-                        room.students[0].room = room.students[1].room = room
-                        room.students[0].roomate_id, room.students[1].roomate_id = room.students[1].id, room.students[0].id
-                    else:
-                        pending_rooms.append(self.assign(student, used_rooms))
+    def populate(students_list: List[int], rooms_list: List[int]):
+        students_list.sort(key = lambda id: len(self.students[id].roomates), reverse = True)
+        
+        def room_sort(room_num):
+            room = self.dorm.blocks[room_num[0:2]].rooms[room_num[2:]]
+            return room.capacity - len(room.students)
+
+        rooms_list.sort(key = room_sort, reverse = True)
 
 
-    def assign(self, student, used_rooms):
-        while True:
-            block_num = randint(1, self.dorm.num_blocks)
-            room_num = 100 * randint(2, 12) + randint(1, 28)
-            
-            if (block_num, room_num) not in used_rooms:
-                room = self.dorm.blocks[block_num].rooms[room_num]
-                student.room = room
-                room.students.append(student)
-                room.gender = student.gender
 
-                if student.roomate != None:
-                    student.roomate.room = room
-                    room.students.append(student.roomate)
-                
-                used_rooms.add((block_num, room_num))
-                return room
 
-    def to_csv(self):
-        f = open("output.csv", "w")
-        f.write("id,name,block,room,place\n")
-        for block in self.dorm.blocks.values():
-            for room in block.rooms.values():
-                for i in range(len(room.students)):
-                    s = room.students[i]
-                    f.write(f"{s.id},{s.name},{s.room.block},{s.room.room_number},{i+1}\n")
+

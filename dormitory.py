@@ -5,7 +5,7 @@ class Dormitory:
         self.blocks = {}
         self.num_blocks = 2
         for i in range(1, self.num_blocks + 1):
-            self.blocks[i] = Block(f"D{i}")
+            self.blocks[f"D{i}"] = Block(f"D{i}")
 
     def __str__(self):
         result = "Dormitory:\n"
