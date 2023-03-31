@@ -9,6 +9,7 @@ from student import Student
 
 def selfdestruction(dummy, students):
     if len(dummy.roomate_ids) == 0:
+        
         return
     
     ls = dummy.roomate_ids.copy()
