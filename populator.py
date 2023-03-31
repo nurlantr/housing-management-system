@@ -2,6 +2,7 @@ from typing import List
 from student import Student
 from random import randint
 from dormitory import Dormitory
+from random import shuffle
 class Populator:
     def __init__(self, file, dorm : Dormitory):
         self.dorm = dorm
@@ -74,23 +75,49 @@ class Populator:
             if dummy_friend != None and len(dummy_friend.roomate_ids) != 0 and dummy_friend.roomate_ids.count(dummy.id) > 0:
                 self.selfdestruction(dummy_friend)
 
-    # def to_csv(self):
-    #     f = open("output.csv", "w")
-    #     f.write("id,name,block,room,place\n")
-    #     for block in self.dorm.blocks.values():
-    #         for room in block.rooms.values():
-    #             for i in range(len(room.students)):
-    #                 s = room.students[i]
-    #                 f.write(f"{s.id},{s.name},{s.room.block},{s.room.room_number},{i+1}\n")
+    def to_csv(self):
+        pass
 
-    def populate(students_list: List[int], rooms_list: List[int]):
+    def populate(self, students_list: List[int], rooms_list: List[int]):
         students_list.sort(key = lambda id: len(self.students[id].roomates), reverse = True)
         
-        def room_sort(room_num):
-            room = self.dorm.blocks[room_num[0:2]].rooms[room_num[2:]]
-            return room.capacity - len(room.students)
+        shuffle(rooms_list)
+        def room_cmp(room_num):
+            room = self.dorm.rooms[room_num]
+            return (room.capacity, room.number[0:2])
+        
+        rooms_list.sort(key = room_cmp, reverse = True)
 
-        rooms_list.sort(key = room_sort, reverse = True)
+
+        # Run for guys
+        gender = 'Male'
+        i = 0 # stud_idx
+        j = 0 # room_idx
+
+        while i < len(students_list) and j < len(rooms_list):
+            student = self.students[students_list[i]]
+            room = self.dorm.rooms[rooms_list[j]]
+            
+            if(student.gender != gender or 
+               student.room or 
+               len(student.roomates) + 1 > room.capacity):
+                i += 1
+                continue
+
+            if room.gender != gender:
+                j += 1
+                continue
+
+            # we can safely populate
+
+            
+
+
+
+
+
+
+
 
 
 
