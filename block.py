@@ -1,6 +1,5 @@
 from room import Room
 class Block:
-
     def __init__(self, block_number):
         self.block_number = block_number
         self.rooms = {}
