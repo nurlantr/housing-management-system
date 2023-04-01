@@ -1,9 +1,10 @@
 from room import Room
+from typing import Dict
 class Dormitory:
 
     def __init__(self):
-        self.rooms = {}
-        self.num_blocks = 2
+        self.rooms: Dict[str, Room] = {}
+        self.num_blocks = 1
         for block_idx in range(1, self.num_blocks + 1):
             for i in range(2, 13):
                 for j in range(1, 29):
@@ -11,15 +12,14 @@ class Dormitory:
 
     def __str__(self):
         result = "Dormitory:\n"
-        for i in self.blocks.values():
+        for i in self.rooms.values():
             result += f"{i}\n"
 
         return result
 
     def num_students(self):
         res = 0
-        for block in self.blocks.values():
-            for room in block.rooms.values():
+        for room in self.rooms.values():
                 res += len(room.students)
 
         return res

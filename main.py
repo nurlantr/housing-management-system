@@ -25,11 +25,11 @@ nu = Dormitory()
 populator = Populator("listcsv.csv", nu)
 
 
-populator.students["A"] = Student("A", "Alim", "Male", "-", "-", ["B", "A"])
-populator.students["B"] = Student("B", "Alim", "Male", "-", "-", ["A", "B"])
-populator.students["C"] = Student("C", "Alim", "Male", "-", "-", ["B", "D"])
-populator.students["D"] = Student("D", "Alim", "Male", "-", "-", ["M"])
-populator.students["M"] = Student("M", "Alim", "Male", "-", "-", ["D"])
+populator.students["A"] = Student("A", "Alim", "Male", "-", "-", ['D'])
+populator.students["B"] = Student("B", "Bota", "Male", "-", "-", ['M','C'])
+populator.students["C"] = Student("C", "Batyr", "Male", "-", "-", ['M','B'])
+populator.students["D"] = Student("D", "Dosbol", "Male", "-", "-", ['A'])
+populator.students["M"] = Student("M", "Naga", "Male", "-", "-", ['B','C'])
 for st in populator.students.values():
 	print(st)
 
@@ -38,6 +38,14 @@ print()
 
 for st in populator.students.values():
 	print(st, st.roomates)
+    
+
+
+populator.populate(["A", "D", "B","C", "M"], ["D11007", "D11111", "D11110"])
+print(populator.dorm)
+for st in populator.students.values():
+     print(st.room)
+
 
 
 # selfdestruction(students["M"], students)

@@ -8,8 +8,8 @@ class Student:
         self.degree = degree
         self.year = year
         self.roomate_ids = roomate_ids
-        self.roomates = []
-        self.room = None
+        self.roomates: List[Student] = []
+        self.room: Room = None
 
     def __str__(self):
         return f"{self.id} {self.name} " + self.gender + " " + str(self.roomate_ids)

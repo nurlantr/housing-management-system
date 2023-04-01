@@ -1,12 +1,13 @@
-from typing import List
+from typing import List, Dict
 from student import Student
 from random import randint
 from dormitory import Dormitory
 from random import shuffle
+import heapq
 class Populator:
     def __init__(self, file, dorm : Dormitory):
         self.dorm = dorm
-        self.students = {}
+        self.students: Dict[str, Student] = {}
 
     def read(self, file):
         with open(file) as f:
@@ -82,33 +83,53 @@ class Populator:
         students_list.sort(key = lambda id: len(self.students[id].roomates), reverse = True)
         
         shuffle(rooms_list)
-        def room_cmp(room_num):
-            room = self.dorm.rooms[room_num]
-            return (room.capacity, room.number[0:2])
+        # def room_cmp(room_num):
+        #     room = self.dorm.rooms[room_num]
+        #     return (room.capacity, room.number[0:2])
         
-        rooms_list.sort(key = room_cmp, reverse = True)
+        # rooms_list.sort(key = room_cmp, reverse = True)
 
-
+        room_heap = [(-self.dorm.rooms[rooms_list[i]].capacity, self.dorm.rooms[rooms_list[i]].number[0:2], i, self.dorm.rooms[rooms_list[i]]) for i in range(len(rooms_list))]
+        heapq.heapify(room_heap)
+        
         # Run for guys
         gender = 'Male'
         i = 0 # stud_idx
-        j = 0 # room_idx
+        # j = 0 # room_idx
 
-        while i < len(students_list) and j < len(rooms_list):
+        while i < len(students_list) and len(room_heap):
             student = self.students[students_list[i]]
-            room = self.dorm.rooms[rooms_list[j]]
-            
+            _, _, idx, room = heapq.heappop(room_heap)
+
             if(student.gender != gender or 
                student.room or 
                len(student.roomates) + 1 > room.capacity):
+                heapq.heappush(room_heap, (-room.capacity, room.number[0:2], idx, room))
                 i += 1
                 continue
 
-            if room.gender != gender:
-                j += 1
+            if room.gender and room.gender != gender:
                 continue
 
-            # we can safely populate
+            room.addStudent(student)
+            
+            for roomate in student.roomates:
+                room.addStudent(roomate)
+            
+            if room.capacity > 0:
+                heapq.heappush(room_heap, (-room.capacity, room.number[0:2], idx, room))
+            
+            i += 1
+
+            
+            
+
+            
+
+
+
+
+            
 
             
 
