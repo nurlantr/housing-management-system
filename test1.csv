@@ -1,0 +1,26 @@
+ID,Full Name ,Gender,Degrees,Year of Study,Roomate ID,Rommate 2 ID
+201780219,Emma Reynolds,Female,Bachelor,1,201826542,202105768
+201826542,Avery Patel,Female,Medical PhD,1,201780219,202105768
+202097664,Isaac Lee,Male,Bachelor,1,201901199,202050010
+201912355,Claire Williams,Female,Bachelor,1,,
+201847659,Violet Martinez,Female,NUZYP,1,201755210,202102301
+202035194,Sadie Davis,Female,Bachelor,1,,
+201755210,Charlotte Hernandez,Female,Bachelor,1,201847659,202102301
+201901199,Nathanial Kim,Male,Masters,1,202097664,
+201910617,Eleanor Rivera,Female,Bachelor,1,,
+202102301,Penelope Cooper,Female,PhD,1,201847659,201755210
+202024998,Sophia Rodriguez,Female,Bachelor,1,202024998,202024998
+201930223,Alice Davis,Female,Bachelor,1,201784917,201930223
+201784917,Nora Collins,Female,Medical PhD,1,201930223,201784917
+201953121,Samuel Lopez,Male,Bachelor,1,201998833,201775268
+202073163,Benjamin Mitchell,Male,Medical Bachelor,1,201925616,202080932
+202050010,Elijah Brown,Male,Bachelor,1,202097664,201901199
+201998833,William Johnson,Male,Bachelor,1,201775268,201953121
+202064563,Ethan Jackson,Male,Masters,1,,
+202105768,Lila Green,Female,Bachelor,1,201780219,201826542
+202074760,Julian Sanchez,Male,Bachelor,1,,
+202080932,Oliver Taylor,Male,Bachelor,1,202073163,201925616
+201888773,Daniel Lee,Male,Bachelor,1,,
+202038964,Nathan Harris,Male,Bachelor,1,,
+201775268,Isaac Rivera,Male,Medical Bachelor,1,201998833,201953121
+201925616,Miles Scott,Male,Bachelor,1,202073163,202080932

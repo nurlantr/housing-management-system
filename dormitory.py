@@ -6,7 +6,7 @@ class Dormitory:
         self.rooms: Dict[str, Room] = {}
         self.num_blocks = 1
         for block_idx in range(1, self.num_blocks + 1):
-            for i in range(2, 13):
+            for i in range(10, 12):
                 for j in range(1, 29):
                     self.rooms[f"D{block_idx}{i*100 + j}"] = Room(f"D{block_idx}{i*100 + j}")
 

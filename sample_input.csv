@@ -1,0 +1,52 @@
+ID,Full Name ,Gender,Degrees,Year of Study,Roomate ID, One more
+201780219,Emma Reynolds,Female,Bachelor,1,202035194,201930223
+201826542,Avery Patel,Female,Medical PhD,1,201755210
+202105768,Lila Green,Female,Bachelor,1,201910617
+201912355,Claire Williams,Female,Bachelor,1,202102301
+201847659,Violet Martinez,Female,NUZYP,1,202024998
+202035194,Sadie Davis,Female,Bachelor,1,201780219,201930223
+201755210,Charlotte Hernandez,Female,Bachelor,1,201826542
+201910617,Eleanor Rivera,Female,Bachelor,1,202105768
+202102301,Penelope Cooper,Female,PhD,1,201912355
+202024998,Sophia Rodriguez,Female,Bachelor,1,201847659
+201930223,Alice Davis,Female,Bachelor,1,201780219,202035194
+201784917,Nora Collins,Female,Medical PhD,1,
+201992727,Stella Lee,Female,Masters,1,202051635
+201925479,Lila Lee,Female,Bachelor,1,201798648
+202019189,Hannah Ortiz,Female,Bachelor,1,201963019
+201776627,Ava Collins,Female,Bachelor,1,201904155
+201867831,Audrey Foster,Female,PhD,1,
+201972090,Grace Walker,Female,Bachelor,1,
+201940622,Amelia Robinson,Female,Bachelor,1,
+202063103,Caroline Ross,Female,NUZYP,1,
+202004658,Scarlett Reyes,Female,Bachelor,1,
+202051635,Hazel Perez,Female,Bachelor,1,201992727
+201798648,Madelyn Flores,Female,Bachelor,1,201925479
+201963019,Harper Adams,Female,Masters,1,202019189
+201904155,Olivia Howard,Female,Bachelor,1,201776627
+202009389,Nora Price,Female,Bachelor,1,
+201794399,Evelyn Long,Female,PhD,1,202080932
+202014251,Chloe Lewis,Female,Bachelor,1,201925616
+201953121,Samuel Lopez,Male,Bachelor,1,201888773
+202097664,Isaac Lee,Male,Bachelor,1,202038964
+201901199,Nathanial Kim,Male,Masters,1,201775268
+202050010,Elijah Brown,Male,Bachelor,1,201998833
+202073163,Benjamin Mitchell,Male,Medical Bachelor,1,
+202064563,Ethan Jackson,Male,Masters,1,
+202074760,Julian Sanchez,Male,Bachelor,1,
+202080932,Oliver Taylor,Male,Bachelor,1,201794399
+201925616,Miles Scott,Male,Bachelor,1,202014251
+201888773,Daniel Lee,Male,Bachelor,1,201953121
+202038964,Nathan Harris,Male,Bachelor,1,202097664
+201775268,Isaac Rivera,Male,Medical Bachelor,1,201901199
+201998833,William Johnson,Male,Bachelor,1,202050010
+201888466,Lucas Nelson,Male,Bachelor,1,
+202062309,Anthony Perez,Male,Masters,1,201781746
+201855739,Aiden Howard,Male,Bachelor,1,202058870
+201789930,Benjamin Brown,Male,Medical PhD,1,202068300
+202076743,Samuel Mitchell,Male,Medical Bachelor,1,201881490
+201845030,Ethan Foster,Male,Bachelor,1,
+201781746,Daniel Baker,Male,Bachelor,1,202062309
+202058870,Christopher Phillips,Male,Bachelor,1,201855739
+202068300,David Ross,Male,Bachelor,1,201789930
+201881490,Timothy Bell,Male,Medical Bachelor,1,202076743
