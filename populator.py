@@ -1,12 +1,10 @@
 from typing import List, Dict
-from student import Student
-from random import randint
-from dormitory import Dormitory
+from models import Dormitory, Student
 from random import shuffle
 import os
 import heapq
 class Populator:
-    def __init__(self, input_name, dorm : Dormitory):
+    def __init__(self, input_name: str, dorm: Dormitory):
         self.dorm = dorm
         self.students: Dict[str, Student] = {}
         self.read(input_name)
@@ -94,7 +92,7 @@ class Populator:
             if dummy_friend != None and len(dummy_friend.roomate_ids) != 0 and dummy_friend.roomate_ids.count(dummy.id) > 0:
                 self.selfdestruction(dummy_friend)
 
-    def populate_old(self, students_list: List[int], rooms_list: List[int]):
+    def populate_old(self, students_list: List[str], rooms_list: List[str]):
         students_list.sort(key = lambda id: len(self.students[id].roomates), reverse = True)
         
         shuffle(rooms_list)
@@ -141,7 +139,7 @@ class Populator:
                 st.discard(habitant)
                 habitant.roomates = list(st)
 
-    def populate(self, students_list: List[int], rooms_list: List[int]):
+    def populate(self, students_list: List[str], rooms_list: List[str]):
         shuffle(rooms_list)
         
         self.populate_gender([male_id for male_id in students_list if self.students[male_id].gender == 'Male'], rooms_list)
@@ -161,7 +159,7 @@ class Populator:
                 not_accommodated.append(student_id)
         print("Were not accommodated:", not_accommodated)
 
-    def populate_gender(self, students_list: List[int], rooms_list: List[int]):
+    def populate_gender(self, students_list: List[str], rooms_list: List[str]):
         students_list.sort(key = lambda id: len(self.students[id].roomates), reverse = True)
         
         for student_id in students_list:

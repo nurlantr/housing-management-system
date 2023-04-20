@@ -2,16 +2,12 @@
 
 # Press ⌃R to execute it or replace it with your code.
 # Press Double ⇧ to search everywhere for classes, files, tool windows, actions, and settings.
-from dormitory import Dormitory
+from models import Dormitory, Student
 from populator import Populator
-from student import Student
 
 
 nu = Dormitory()
 populator = Populator("test1.csv", nu)
-
-
-
 
 # populator.students["A"] = Student("A", "Alim", "Female", "-", "-", ['D'])
 # populator.students["B"] = Student("B", "Bota", "Male", "-", "-", ['M'])
