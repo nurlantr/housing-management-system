@@ -32,5 +32,5 @@ print(nu)
 for st in populator.students.values():
 	print(st, 'Roomates:', st.roomates)
     
-populator.to_csv("test_output.csv")
-populator.upload_csv("test_upload.csv")
+populator.to_csv("output", "test_output.csv")
+populator.upload_csv("upload", "test_upload.csv")

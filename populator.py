@@ -198,13 +198,11 @@ class Populator:
                 for roomate in student.roomates:
                     best_room.addStudent(roomate)
 
-    def to_csv(self, file_name: str):
-        output_path = "output"
-        
-        if not os.path.exists(output_path):
-            os.makedirs(output_path)
+    def to_csv(self, dir_name: str, file_name: str):
+        if not os.path.exists(dir_name):
+            os.makedirs(dir_name)
 
-        path = os.path.join(output_path, file_name)
+        path = os.path.join(dir_name, file_name)
         
         f = open(path, "w")
         f.write("id,block,room,place\n")
@@ -214,13 +212,11 @@ class Populator:
                 f.write(f"{s.id},{room.number[0:2]},{room.number[2:]},{i+1}\n")
         f.close()
     
-    def upload_csv(self, file_name: str):
-        output_path = "output"
-        
-        if not os.path.exists(output_path):
-            os.makedirs(output_path)
+    def upload_csv(self, dir_name: str, file_name: str):
+        if not os.path.exists(dir_name):
+            os.makedirs(dir_name)
 
-        path = os.path.join(output_path, file_name)
+        path = os.path.join(dir_name, file_name)
         
         f = open(path, "w")
         f.write("ID card/Номер ID карты*,IIN/ИИН**,Lastname/Фамилия***,Firstname/Имя***,Complex/Комплекс*,Bulding (Block)/Блок*,Object number/Номер объекта*,Place number/Номер места*,Start date/Дата заселения*,End date/Дата выселения*,Comment/Комментарий,Reasons for accomodation/Основание заселения,Type of accomodation/Тип заселения*,Number of the agreement/Номер договора,Date of the agreement/Дата договора,Cost of living/Стоимость проживания,Discount/Скидка\n")
