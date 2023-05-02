@@ -2,7 +2,7 @@ from typing import Dict, List
 class Dormitory:
     def __init__(self):
         self.rooms: Dict[str, Room] = {}
-        self.num_blocks = 1
+        self.num_blocks = 2
         for block_idx in range(1, self.num_blocks + 1):
             for i in range(10, 12):
                 for j in range(1, 29):
@@ -23,9 +23,8 @@ class Dormitory:
         return res
 
 class Student:
-    def __init__(self, id: str, name: str, gender: str, degree: str, year: str, roomate_ids: List[str]):
+    def __init__(self, id: str, gender: str, degree: str, year: str, roomate_ids: List[str]):
         self.id = id
-        self.name = name
         self.gender = gender
         self.degree = degree
         self.year = year
@@ -34,10 +33,10 @@ class Student:
         self.room: Room | None = None
 
     def __str__(self):
-        return  f"{self.id} {self.name} " + self.gender + " " + str(self.roomate_ids)
+        return  f"{self.id} " + self.gender + " " + str(self.roomate_ids)
 
     def __repr__(self):
-        return f" {self.id} {self.name} " + self.gender + " " + str(self.roomate_ids)
+        return f" {self.id} " + self.gender + " " + str(self.roomate_ids)
 
     def __eq__(self, other: object) -> bool:
         if isinstance(other, Student):

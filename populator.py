@@ -17,7 +17,7 @@ class Populator:
                 if not line:
                     break
                 line = line.strip(',\n ').split(',')
-                self.students[line[0]] = Student(line[0], line[1], line[2], line[3], line[4], line[5:])
+                self.students[line[0]] = Student(line[0], line[1], line[2], line[3], line[4:])
                 
 
     def match(self, A: Student, B: Student, roomate_num: int):
@@ -41,17 +41,27 @@ class Populator:
         for student in self.students.values():
             if len(student.roomates) != 0: continue
             
-            if len(student.roomate_ids) == 1 and (student.roomate_ids[0] in self.students) and (student.id != student.roomate_ids[0]):
+            if (len(student.roomate_ids) == 1 and 
+                (student.roomate_ids[0] in self.students) and 
+                (student.id != student.roomate_ids[0])):
                 intended_roomate = self.students[student.roomate_ids[0]]
 
                 if self.match(student, intended_roomate, 1):
                     student.roomates.append(intended_roomate)
                     intended_roomate.roomates.append(student)
 
-            elif len(student.roomate_ids) == 2 and (student.roomate_ids[0] in self.students) and (student.roomate_ids[1] in self.students) and len({student.id, student.roomate_ids[0], student.roomate_ids[1]}) == 3:
+            elif (len(student.roomate_ids) == 2 and
+                  (student.roomate_ids[0] in self.students) and
+                  (student.roomate_ids[1] in self.students) and 
+                  len({student.id, student.roomate_ids[0], student.roomate_ids[1]}) == 3):
+                
                 intended_roomate1 = self.students[student.roomate_ids[0]]
                 intended_roomate2 = self.students[student.roomate_ids[1]]
-                if self.match(student, intended_roomate1, 2) and self.match(student,intended_roomate2, 2) and self.match(intended_roomate1, intended_roomate2, 2):
+                
+                if (self.match(student, intended_roomate1, 2) and
+                    self.match(student,intended_roomate2, 2) and
+                    self.match(intended_roomate1, intended_roomate2, 2)):
+
                     student.roomates.extend([intended_roomate1, intended_roomate2])
                     intended_roomate1.roomates.extend([intended_roomate2, student])
                     intended_roomate2.roomates.extend([intended_roomate1, student])
@@ -62,9 +72,11 @@ class Populator:
                   (student.roomate_ids[2] in self.students) and
                   len({student.id, student.roomate_ids[0], student.roomate_ids[1], student.roomate_ids[2]}) == 4
                   ):
+                
                 intended_roomate1 = self.students[student.roomate_ids[0]]
                 intended_roomate2 = self.students[student.roomate_ids[1]]
                 intended_roomate3 = self.students[student.roomate_ids[2]]
+                
                 if (self.match(student, intended_roomate1, 3) and 
                     self.match(student,intended_roomate2, 3) and 
                     self.match(student,intended_roomate3, 3) and 
@@ -72,6 +84,7 @@ class Populator:
                     self.match(intended_roomate1, intended_roomate3, 3) and
                     self.match(intended_roomate2, intended_roomate3, 3)
                     ):
+
                     student.roomates.extend([intended_roomate1, intended_roomate2, intended_roomate3])
                     intended_roomate1.roomates.extend([intended_roomate2, intended_roomate3, student])
                     intended_roomate2.roomates.extend([intended_roomate1, intended_roomate3, student])
@@ -139,8 +152,9 @@ class Populator:
                 st.discard(habitant)
                 habitant.roomates = list(st)
 
-    def populate(self, students_list: List[str], rooms_list: List[str]):
-        shuffle(rooms_list)
+    def populate(self, students_list: List[str], rooms_list: List[str], randomize = True):
+        if randomize:
+            shuffle(rooms_list) 
         
         self.populate_gender([male_id for male_id in students_list if self.students[male_id].gender == 'Male'], rooms_list)
         self.populate_gender([female_id for female_id in students_list if self.students[female_id].gender == 'Female'], rooms_list)
@@ -193,12 +207,29 @@ class Populator:
         path = os.path.join(output_path, file_name)
         
         f = open(path, "w")
-        f.write("id,name,block,room,place\n")
+        f.write("id,block,room,place\n")
         for room in self.dorm.rooms.values():
             for i in range(len(room.students)):
                 s = room.students[i]
-                f.write(f"{s.id},{s.name},{room.number[0:2]},{room.number[2:]},{i+1}\n")
+                f.write(f"{s.id},{room.number[0:2]},{room.number[2:]},{i+1}\n")
         f.close()
+    
+    def upload_csv(self, file_name: str):
+        output_path = "output"
+        
+        if not os.path.exists(output_path):
+            os.makedirs(output_path)
+
+        path = os.path.join(output_path, file_name)
+        
+        f = open(path, "w")
+        f.write("ID card/Номер ID карты*,IIN/ИИН**,Lastname/Фамилия***,Firstname/Имя***,Complex/Комплекс*,Bulding (Block)/Блок*,Object number/Номер объекта*,Place number/Номер места*,Start date/Дата заселения*,End date/Дата выселения*,Comment/Комментарий,Reasons for accomodation/Основание заселения,Type of accomodation/Тип заселения*,Number of the agreement/Номер договора,Date of the agreement/Дата договора,Cost of living/Стоимость проживания,Discount/Скидка\n")
+        for room in self.dorm.rooms.values():
+            for i in range(len(room.students)):
+                s = room.students[i]
+                f.write(f"{s.id},,,,Блок {room.number[0:2]},Блок {room.number[0:2]},{room.number[2:]},{i+1},,,,,,,,,\n")
+        f.close()
+
     
         
 
