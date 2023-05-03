@@ -1,14 +1,59 @@
 from typing import List, Dict
 from models import Dormitory, Student
 from random import shuffle
+import pandas as pd
 import os
-import heapq
 class Populator:
     def __init__(self, input_name: str, dorm: Dormitory):
         self.dorm = dorm
         self.students: Dict[str, Student] = {}
-        self.read(input_name)
+        # self.read(input_name)
 
+    def read_excel_dorm(self, input_name):
+        # preprocess
+        df = pd.read_excel(input_name, header = 0)
+        df.columns = ['Block', 'Room', 'Id', 'Gender']
+        for col in df.columns:
+            df[col] = df[col].astype(str)
+        df.Gender = df.Gender.map({'Female': 'Female', 'Male': 'Male'})
+        
+        df.Room = df.Block.astype(str) + '.' + df.Room.astype(str)
+
+        df = df.drop(['Block'], axis = 1)
+
+        #reading
+        for _, row in df.iterrows():
+            room_num = row['Room']
+            id = row['Id']
+            gender = row['Gender']
+            
+            student = Student(id = id, gender = gender)
+            self.students[id] = student
+
+            self.dorm.rooms[room_num].addStudent(student)
+
+    def read_excel_students(self, input_name):
+        df = pd.read_excel(input_name, header = 0)
+        df.columns = ['Id', 'Gender']
+        df.Gender = df.Gender.map({'Female': 'Female', 'Male': 'Male'})
+        
+        for _, row in df.iterrows():
+            id = str(row['Id'])
+            gender = str(row['Gender'])
+            
+            if id in self.students:
+                student = self.students[id]
+                if student.room is not None:
+                    student.room.deleteStudent(self.students[id])
+                else:
+                    raise Exception("Something is wrong. Room is None!")
+            else:
+                self.students[id] = Student(id = id, gender = gender)
+        
+        students_to_accomodate = list(df.Id.astype(str))
+
+        return students_to_accomodate
+                
     def read(self, input_name):
         with open(input_name) as f:
             line = f.readline()
@@ -105,60 +150,16 @@ class Populator:
             if dummy_friend != None and len(dummy_friend.roomate_ids) != 0 and dummy_friend.roomate_ids.count(dummy.id) > 0:
                 self.selfdestruction(dummy_friend)
 
-    def populate_old(self, students_list: List[str], rooms_list: List[str]):
-        students_list.sort(key = lambda id: len(self.students[id].roomates), reverse = True)
-        
-        shuffle(rooms_list)
-
-        def run(gender: str):
-            room_heap = [(-self.dorm.rooms[rooms_list[i]].capacity, self.dorm.rooms[rooms_list[i]].number[0:2], i, self.dorm.rooms[rooms_list[i]]) for i in range(len(rooms_list))]
-            heapq.heapify(room_heap)
-            
-            # Run for guys
-            i = 0 # stud_idx
-            
-
-            while i < len(students_list) and len(room_heap):
-                student = self.students[students_list[i]]
-                _, _, idx, room = heapq.heappop(room_heap)
-
-                if(student.gender != gender or 
-                    student.room or 
-                    len(student.roomates) + 1 > room.capacity):
-                    heapq.heappush(room_heap, (-room.capacity, room.number[0:2], idx, room))
-                    i += 1
-                    continue
-
-                if room.gender and room.gender != gender:
-                    continue
-
-                room.addStudent(student)
-                
-                for roomate in student.roomates:
-                    room.addStudent(roomate)
-
-                if room.capacity > 0:
-                    heapq.heappush(room_heap, (-room.capacity, room.number[0:2], idx, room))
-                
-                i += 1
-        
-        run("Male")
-        run("Female")
-        print(rooms_list)
-        for id in rooms_list:
-            room = self.dorm.rooms[id]
-            for habitant in room.students:
-                st = set(room.students)
-                st.discard(habitant)
-                habitant.roomates = list(st)
-
+   
     def populate(self, students_list: List[str], rooms_list: List[str], randomize = True):
         if randomize:
             shuffle(rooms_list) 
         
         self.populate_gender([male_id for male_id in students_list if self.students[male_id].gender == 'Male'], rooms_list)
         self.populate_gender([female_id for female_id in students_list if self.students[female_id].gender == 'Female'], rooms_list)
+        
 
+        # Can comment this out because added this to Room.addStudent
         for room_num in rooms_list:
             room = self.dorm.rooms[room_num]
             for habitant in room.students:
@@ -205,14 +206,16 @@ class Populator:
         path = os.path.join(dir_name, file_name)
         
         f = open(path, "w")
-        f.write("id,block,room,place\n")
+        f.write("block,room,id,gender\n")
         for room in self.dorm.rooms.values():
             for i in range(len(room.students)):
                 s = room.students[i]
-                f.write(f"{s.id},{room.number[0:2]},{room.number[2:]},{i+1}\n")
+                f.write(f"{room.number[0:2]},{room.number[3:]},{s.id},{s.gender}\n")
         f.close()
+
+        return pd.read_csv(path)
     
-    def upload_csv(self, dir_name: str, file_name: str):
+    def upload_csv(self, dir_name: str, file_name: str, student_ids: List[str] | None = None):
         if not os.path.exists(dir_name):
             os.makedirs(dir_name)
 
@@ -223,8 +226,13 @@ class Populator:
         for room in self.dorm.rooms.values():
             for i in range(len(room.students)):
                 s = room.students[i]
-                f.write(f"{s.id},,,,Блок {room.number[0:2]},Блок {room.number[0:2]},{room.number[2:]},{i+1},,,,,,,,,\n")
+                if student_ids is not None:
+                    if s.id not in student_ids: continue
+                f.write(f"{s.id},,,,Блок {room.number[0:2]},Блок {room.number[0:2]},{room.number[3:]},{i+1},,,,,,,,,\n")
         f.close()
+
+    def __del__(self):
+        self.to_csv('dorm', 'db')
 
     
         
