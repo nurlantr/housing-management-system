@@ -29,11 +29,12 @@ class Dormitory:
 
         return result
 
-    def get_empty_rooms(self, begin, end):
+    def get_rooms(self, begin, end, size = 0):
         empty_rooms = []
         for room in self.rooms.values():
             if int(room.number[0:2]) in range(begin, end + 1):
-                empty_rooms.append(room.number)
+                if len(room.students) == size:
+                    empty_rooms.append(room.number)
         
         return empty_rooms
 

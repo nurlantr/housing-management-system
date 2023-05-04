@@ -16,6 +16,7 @@ class Populator:
         for col in df.columns:
             df[col] = df[col].astype(str)
         df.Gender = df.Gender.map({'Female': 'Female', 'Male': 'Male'})
+        df.Block = df.Block.map({'D6 (23)': '23', 'D7 (24)': '24', 'D8 (25)': '25', 'D9 (26)': '26','D10 (27)': '27'})
         
         df.Room = df.Block.astype(str) + '.' + df.Room.astype(str)
 
@@ -31,6 +32,8 @@ class Populator:
             self.students[id] = student
 
             self.dorm.rooms[room_num].addStudent(student)
+        
+        return df
 
     def read_excel_students(self, input_name):
         df = pd.read_excel(input_name, header = 0)
