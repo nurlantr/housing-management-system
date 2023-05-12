@@ -12,6 +12,8 @@ class Populator:
         df.columns = ['Block', 'Room', 'Id', 'Gender', 'Degree', 'Year']
         if df.isnull().sum().sum() > 0:
             raise ValueError(f'Following rows contain null values {df[df.isnull().any(axis=1)].index.tolist()}')
+        if df.duplicated(subset=['Id']).sum() > 0:
+            raise ValueError(f'Following rows contain duplicate Ids {df[df.duplicated(subset=["Id"])].index.tolist()}')
         # -------------------------------------
         # More Data Transformations (if needed)
         # -------------------------------------
@@ -65,7 +67,8 @@ class Populator:
                 
     
     def pair_roommates(self):
-        student_ids_to_destroy: dict[int, str] = {}
+        self.student_ids_to_destroy: dict[int, str] = {}
+        set_of_student_ids_to_skip: set[int] = set()
         for student in self.students.values():
             if len(student.intended_roommate_ids) == 0: # Student did not apply for roommates matching.
                 continue                                # That student either already has a room or applied as random (does not need to be paired)
@@ -73,21 +76,28 @@ class Populator:
             # Check if all roommates exist in students list
             for roommate_id in student.intended_roommate_ids: 
                 if roommate_id not in self.students:
-                    student_ids_to_destroy[student.id] = f'Id error! Student {student.id} fault! Roommate {roommate_id} id does not exist or he/she did not apply for accommodation.'
+                    self.student_ids_to_destroy[student.id] = f'Id error! Student {student.id} fault! Roommate {roommate_id} id does not exist or he/she did not apply for accommodation.'
                     break
             
-            if student.id in student_ids_to_destroy:
+            if student.id in self.student_ids_to_destroy:
                 continue
 
             # Check if all Ids are unique. Student did not apply for the same roommate twice or no one applied for himself/herself.
             set_of_roommates = set(student.intended_roommate_ids)
             set_of_roommates.add(student.id) # Now it is a set of all students that applied for each other
             if len(set_of_roommates) != len(student.intended_roommate_ids) + 1:
-                student_ids_to_destroy[student.id] = f'Ids uniqueness error! Student {student.id} fault! Roommate Ids are not unique or student applied for himself/herself.'
+                self.student_ids_to_destroy[student.id] = f'Ids uniqueness error! Student {student.id} fault! Roommate Ids are not unique or student applied for himself/herself.'
 
-            if student.id in student_ids_to_destroy:
+            if student.id in self.student_ids_to_destroy:
                 continue
             
+            # Check if roommates have unique Ids. No one applied for the same roommate twice or no one applied for himself/herself.
+            for roommate_id in student.intended_roommate_ids:
+                if len(set_of_roommates) != len(self.students[roommate_id].intended_roommate_ids) + 1:
+                    self.student_ids_to_destroy[student.id] = f'Ids uniqueness error! Student {student.id} fault! Roommate {roommate_id} Ids are not unique or student applied for himself/herself.'
+                    break
+
+            # Id matching
             # Now that we know all roommates exist and are unique, we need to check if each roommate applied for the other.
             # In case of 2, If A applied for B, then B must have applied for A. In case of 3, If A applied for B and C, then B must have applied for A, C and C must have applied for A, B.
             # double check this
@@ -95,21 +105,25 @@ class Populator:
                 set_of_intended_roommates = set(self.students[roommate_id].intended_roommate_ids)
                 set_of_intended_roommates.add(roommate_id)
                 if set_of_intended_roommates != set_of_roommates:
-                    student_ids_to_destroy[student.id] = f'Id match error. Student {student.id} or Roommate {roommate_id} did something wrong with Ids.'
+                    self.student_ids_to_destroy[student.id] = f'Id match error. Student {student.id} or Roommate {roommate_id} did something wrong with Ids.'
                     break
             
-            if student.id in student_ids_to_destroy:
+            if student.id in self.student_ids_to_destroy:
                 continue
 
-            # Check if he has room already
-            
             # Gender matching
             for roommate_id in student.intended_roommate_ids:
                 if self.students[roommate_id].gender != student.gender:
-                    student_ids_to_destroy[student.id] = f'Gender match error. Student {student.id} or Roommate {roommate_id} have different genders.'
+                    self.student_ids_to_destroy[student.id] = f'Gender match error. Student {student.id} or Roommate {roommate_id} have different genders.'
                     break
+            
+            if student.id in self.student_ids_to_destroy:
+                continue
         
-                    
-                
+        for student_id in self.student_ids_to_destroy:
+            self.students[student_id].intended_roommate_ids = []
+
+
+
                 
 

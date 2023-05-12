@@ -88,12 +88,12 @@ class Room:
             self.gender = None
 
 class Student:
-    def __init__(self, id: int, gender: str, degree: str | None = None, year: str | None = None, intended_roomate_ids: list[int] | None = None):
+    def __init__(self, id: int, gender: str, degree: str | None = None, year: str | None = None, intended_roommate_ids: list[int] | None = None):
         self.id = id
         self.gender = gender
         self.degree = degree
         self.year = year
-        self.intended_roommate_ids = [] if intended_roomate_ids is None else intended_roomate_ids
+        self.intended_roommate_ids = [] if intended_roommate_ids is None else intended_roommate_ids
         self.roommates: list[Student] = []
         self.room: Room | None = None
     
