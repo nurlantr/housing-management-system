@@ -68,6 +68,8 @@ class Room:
         self.students.append(new_student)
         self.capacity -= 1
 
+        print(f"{self.block_number}.{self.number}:\n    Added Student {new_student.id}")
+
     def deleteStudent(self, delete_student: 'Student'):
         delete_student.room = None
         

@@ -1,11 +1,12 @@
 from models_refactored import *
+from random import shuffle
 class Populator:
     def __init__(self, dorm: Dormitory):
         self.dorm = dorm
         self.students: dict[int, Student] = {}
     
     def update_dorm(self, dorm_input_file: str):
-        df = pd.read_excel(dorm_input_file) # Header: Block, Room, ID, Gender
+        df = pd.read_excel(dorm_input_file) # Header: Block, Room, ID, Gender, Degree, Year
         if df.shape[1] != 6:
             raise ValueError(f'Number of columns should be 6')
         
@@ -41,8 +42,8 @@ class Populator:
         df.Roommate2 = df.Roommate2.astype(int)
         df.Roommate3 = df.Roommate3.astype(int)
 
-        student_ids_with_rooms = []
-        student_ids_to_accommodate = []
+        self.student_ids_with_rooms = []
+        self.student_ids_to_accommodate = []
         for _, row in df.iterrows():
             id = row['Id']
             gender = row['Gender']
@@ -56,19 +57,18 @@ class Populator:
             if id in self.students: # Student already in dorm
                 if len(roommates) == 0:
                     raise ValueError(f'Student {id} is already in dorm, did not specify roommates, but applied for accommodation. Contradiction.')
-                student_ids_with_rooms.append(id)
+                self.student_ids_with_rooms.append(id)
                 self.students[id].intended_roommate_ids = roommates
             else:
                 self.students[id] = Student(id, gender, degree, year, roommates)
-                student_ids_to_accommodate.append(id)
+                self.student_ids_to_accommodate.append(id)
         # List of students to accommodate that do not have rooms
-    
-        return student_ids_with_rooms, student_ids_to_accommodate
+
+        return self.student_ids_with_rooms, self.student_ids_to_accommodate
                 
     
-    def pair_roommates(self):
+    def match_roommates(self):
         self.student_ids_to_destroy: dict[int, str] = {}
-        set_of_student_ids_to_skip: set[int] = set()
         for student in self.students.values():
             if len(student.intended_roommate_ids) == 0: # Student did not apply for roommates matching.
                 continue                                # That student either already has a room or applied as random (does not need to be paired)
@@ -121,9 +121,131 @@ class Populator:
                 continue
         
         for student_id in self.student_ids_to_destroy:
+            print('Student', student_id, 'match will be destroyed.\n    Reason:', self.student_ids_to_destroy[student_id])
             self.students[student_id].intended_roommate_ids = []
+    
+
+    # Now we need to accommodate students who were paired with those who already have rooms.
+    def assign_roommate(self):
+        for student_id in self.student_ids_with_rooms:
+            student = self.students[student_id]
+
+            if len(student.intended_roommate_ids) == 0:
+                continue
+
+            if student.room is None:
+                raise ValueError(f"Student {student.id} has no Room but was supposed to!")
+            # We need to check if their pair (tuple or triple or guadriple) can fit into the room of student
+            
+            intended_roommate_ids_to_accommodate = list(set(student.intended_roommate_ids) - set(current_roommate.id for current_roommate in student.roommates))
+            
+            if student.room.capacity < len(intended_roommate_ids_to_accommodate):
+                error_msg = f'Student {student.id} room has not enough capacity to accommodate his intended roommates.'
+                self.student_ids_to_destroy[student.id] = error_msg
+                print('Student', student_id, 'match will be destroyed.\n    Reason:', self.student_ids_to_destroy[student_id])
+                student.intended_roommate_ids = []
+                for roommate_id in student.intended_roommate_ids:
+                    self.student_ids_to_destroy[roommate_id] = error_msg
+                    print('Student', roommate_id, 'match will be destroyed.\n    Reason:', self.student_ids_to_destroy[roommate_id])
+                    self.students[roommate_id].intended_roommate_ids = []
+            
+            if student.id in self.student_ids_to_destroy:
+                continue
+            
+            for intended_roomate_id_to_accommodate in intended_roommate_ids_to_accommodate:
+                student.room.addStudent(self.students[intended_roomate_id_to_accommodate])
+    
+    def get_rooms(self, block_list: list[int], floor_list: list[int], size: int, gender: str | None = None) -> list[Room]:
+        list_of_rooms: list[Room] = []
+        for block_num in block_list:
+            for room_num in self.dorm.rooms[block_num]:
+                room = self.dorm.rooms[block_num][room_num]
+                
+                if (room_num // 100) not in floor_list:
+                    continue
+                
+                if len(room.students) != size:
+                    continue
+                
+                if size != 0 and gender is not None:
+                    if gender != room.gender:
+                        continue
+                
+                list_of_rooms.append(room)
+
+        return list_of_rooms
+    
+    def populate(self, student_ids_to_populate: list[int], rooms_list: list[Room], random: bool = True):
+        if random:
+            shuffle(rooms_list)
+
+        student_ids_to_populate.sort(key = lambda student_id: len(self.students[student_id].intended_roommate_ids), reverse = True)
+
+        for student_id in student_ids_to_populate:
+            student = self.students[student_id]
+
+            if student.room is not None:
+                continue
+
+            group_len = len(student.intended_roommate_ids) + 1
+            best_room: Room | None = None
+            for room in rooms_list:
+                if room.gender is not None and room.gender != student.gender:
+                    continue
+
+                if room.capacity < group_len:
+                    continue
+                
+                if best_room is None:
+                    best_room = room
+                    continue
+
+                if room.capacity < best_room.capacity:
+                    best_room = room
+            
+            if best_room is not None:
+                best_room.addStudent(student)
+                
+                for roommate_id in student.intended_roommate_ids:
+                    best_room.addStudent(self.students[roommate_id])
+        
+        were_not_populated = []
+        for student_id in student_ids_to_populate:
+            student = self.students[student_id]
+            if student.room is None:
+                were_not_populated.append(student_id)
+        
+        return were_not_populated
+            
+            
+    def hard_population(self):
+        pass
+        # This will be useful when we need to destroy matches in order to accommodate students into rooms. But this is only applicabple when there are no other rooms availble.
+        # We can use it later
+        # if student.room is None:
+        #     self.student_ids_to_destroy[student_id] = f'Student {student.id} could not be populated.'
+        #     print('Student', student_id, 'match will be destroyed.\n    Reason:', self.student_ids_to_destroy[student_id])
+        #     student.intended_roommate_ids = []
+        #     for roommate_id in student.intended_roommate_ids:
+        #         self.student_ids_to_destroy[roommate_id] = f'Student {roommate_id} could not be populated.'
+        #         print('Student', roommate_id, 'match will be destroyed.\n    Reason:', self.student_ids_to_destroy[roommate_id])
+        #         self.students[roommate_id].intended_roommate_ids = []
+        
 
 
+        
+
+        
+        
+
+    
+    
+
+
+
+        
+
+    
 
                 
 
