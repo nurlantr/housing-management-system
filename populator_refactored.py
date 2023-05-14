@@ -5,6 +5,9 @@ class Populator:
 	def __init__(self, dorm: Dormitory):
 		self.dorm = dorm
 		self.students: dict[int, Student] = {}
+		self.student_ids_with_rooms: list[int] = []
+		self.student_ids_to_accommodate: list[int] = []
+		self.student_ids_to_destroy: dict[int, str] = {}
 	
 	def update_dorm(self, dorm_input_file):
 		df = pd.read_excel(dorm_input_file) # Header: Block, Room, ID, Gender, Degree, Year
@@ -40,8 +43,7 @@ class Populator:
 		# -------------------------------------
 		df.Id = df.Id.astype(int)
 
-		self.student_ids_with_rooms = []
-		self.student_ids_to_accommodate = []
+		
 		for _, row in df.iterrows():
 			id = row['Id']
 			gender = row['Gender']
@@ -60,13 +62,8 @@ class Populator:
 			else:
 				self.students[id] = Student(id, gender, degree, year, roommates)
 				self.student_ids_to_accommodate.append(id)
-		# List of students to accommodate that do not have rooms
 
-		return self.student_ids_with_rooms, self.student_ids_to_accommodate
-				
-	
 	def match_roommates(self):
-		self.student_ids_to_destroy: dict[int, str] = {}
 		for student in self.students.values():
 			if len(student.intended_roommate_ids) == 0: # Student did not apply for roommates matching.
 				continue                                # That student either already has a room or applied as random (does not need to be paired)
@@ -122,7 +119,6 @@ class Populator:
 			print('Student', student_id, 'match will be destroyed.\n    Reason:', self.student_ids_to_destroy[student_id])
 			self.students[student_id].intended_roommate_ids = []
 	
-
 	# Now we need to accommodate students who were paired with those who already have rooms.
 	def assign_roommate(self):
 		print("Assigning roommates to those who already had rooms...")
@@ -210,7 +206,6 @@ class Populator:
 		
 		if ids is not None:
 			df = df[df['Id'].isin(ids)]
-
 		
 		return df, df['Id'].tolist()
 		
@@ -264,18 +259,7 @@ class Populator:
 		return were_not_populated
 			
 			
-	def hard_population(self):
-		pass
-		# This will be useful when we need to destroy matches in order to accommodate students into rooms. But this is only applicabple when there are no other rooms availble.
-		# We can use it later
-		# if student.room is None:
-		#     self.student_ids_to_destroy[student_id] = f'Student {student.id} could not be populated.'
-		#     print('Student', student_id, 'match will be destroyed.\n    Reason:', self.student_ids_to_destroy[student_id])
-		#     student.intended_roommate_ids = []
-		#     for roommate_id in student.intended_roommate_ids:
-		#         self.student_ids_to_destroy[roommate_id] = f'Student {roommate_id} could not be populated.'
-		#         print('Student', roommate_id, 'match will be destroyed.\n    Reason:', self.student_ids_to_destroy[roommate_id])
-		#         self.students[roommate_id].intended_roommate_ids = []
+	
 		
 
 
