@@ -201,11 +201,6 @@ def populator_page():
     upload = st.button("Загрузить", key="upload", on_click= callbackUpload) 
     # Handle button click event        
     if st.session_state.upload_clicked: 
-        if st.session_state.build:
-            if st.session_state.room_data and st.session_state.occupant_data:
-                file_processing()
-                populate_details()
-
         if not st.session_state.build:
             st.error("Please build dormitory first")
         if st.session_state.room_data is not None: 
@@ -217,7 +212,12 @@ def populator_page():
             st.write("Второй файл сохранен") 
         else: 
             st.error("Please upload the file 'Список заселяемых'") 
-            
+        
+        if st.session_state.build:
+            if st.session_state.room_data and st.session_state.occupant_data:
+                file_processing()
+                populate_details()
+
 
 def populate_details():
     st.markdown("---")
@@ -253,8 +253,13 @@ def populate_details():
     
     st.button("Populate", help = "Populate", on_click = populate, key = 'populate')
     if st.session_state.populate_clicked:
-        st.write("Populated")
+        st.write("Populated") 
+        csv = convert_df(st.session_state.populator.to_upload_file())
+        st.download_button(label = "Получить файл заливки", data = csv, help = "Скачать CSV файл заливки", file_name='Файл_заливки.csv', mime='text/csv')
 
+@st.cache_data
+def convert_df(df):
+    return df.to_csv().encode('utf-8-sig')
 
 def populate():
     if st.session_state.get_rooms_clicked and st.session_state.get_students_clicked:
