@@ -7,14 +7,15 @@ from io import BytesIO
 blocks: list['Block'] = []
 
 def build_dormitory():
-    st.session_state.build = True
+    if not st.session_state.build:
+        blocks_ref = {}
+        for block in blocks:
+            if block.active:   
+                blocks_ref[block.blockID] = Dormitory.Block(block.blockID, list(block.floors), [1, block.rooms], block.places)
+        st.session_state.nu = Dormitory(blocks_ref, st.session_state.excluded_data)
     
-    # all functions of processing
-    blocks_ref = {}
-    for block in blocks:
-        if block.active:   
-            blocks_ref[block.blockID] = Dormitory.Block(block.blockID, list(block.floors), [1, block.rooms], block.places)
-    st.session_state.nu = Dormitory(blocks_ref, st.session_state.excluded_data)
+    st.session_state.build = True
+
 
 # Define the Block class
 class Block:
@@ -24,7 +25,6 @@ class Block:
         self.floors = floors
         self.rooms = rooms
         self.places = places
-
 
 
 def init_session_state():
@@ -60,6 +60,12 @@ def init_session_state():
         st.session_state.occupants_data_uploaded = False
     if 'excluded_data' not in st.session_state:
         st.session_state.excluded_data = None
+    if 'paired_roomates' not in st.session_state:
+        st.session_state.paired_roomates = False
+    if 'settled_roomates' not in st.session_state:
+        st.session_state.settled_roomates = False
+    if 'file_processed' not in st.session_state:
+        st.session_state.file_processed = False
 
 def callbackUpload():
     st.session_state.upload_clicked = True
@@ -193,8 +199,7 @@ def populator_page():
 
     # Add button to submit uploaded files 
     upload = st.button("Загрузить", key="upload", on_click= callbackUpload) 
-    # Handle button click event 
-
+    # Handle button click event        
     if st.session_state.upload_clicked: 
         if st.session_state.build:
             if st.session_state.room_data and st.session_state.occupant_data:
@@ -249,9 +254,15 @@ def populate_details():
     st.button("Populate", help = "Populate", on_click = populate, key = 'populate')
     if st.session_state.populate_clicked:
         st.write("Populated")
+
+
 def populate():
-    st.session_state.populate_clicked = True
-    st.session_state.populator.populate(st.session_state.filtered_students_list, st.session_state.filtered_rooms_list)        
+    if st.session_state.get_rooms_clicked and st.session_state.get_students_clicked:
+        st.session_state.populate_clicked = True
+        st.session_state.populator.populate(st.session_state.filtered_students_list, st.session_state.filtered_rooms_list)     
+    else:
+        st.error("Please get rooms and students first")
+
 def get_rooms():
     st.session_state.get_rooms_clicked = True
     block_list = st.session_state.block_list_room
@@ -277,21 +288,26 @@ def get_students():
         student_ids = [int(id) for id in student_ids.split(",")]
     st.session_state.filtered_students_df, st.session_state.filtered_students_list = st.session_state.populator.filter_students(gender, degree, year, student_ids)
 
+
 def pair_roomates():
-    st.session_state.populator.match_roommates()
+    if not st.session_state.paired_roomates:
+        st.session_state.populator.match_roommates()
+    st.session_state.paired_roomates = True
 
 def settle_roomates():
-    st.session_state.populator.assign_roommate()
-
-@st.cache_data
-def update_dorm():
-    st.session_state.populator.update_dorm(st.session_state.room_data)
+    if not st.session_state.settled_roomates:
+        st.session_state.populator.assign_roommate()
+    st.session_state.settled_roomates = True
 
 def file_processing():
-    st.session_state.populator = Populator(st.session_state.nu)
-    update_dorm()
-    st.session_state.populator.read_students_to_accommodate(st.session_state.occupant_data)
-    st.session_state.populator.refresh_df_students_to_accommodate()
+    if not st.session_state.file_processed:
+        st.session_state.populator = Populator(st.session_state.nu)
+        st.session_state.populator.update_dorm(st.session_state.room_data)
+        st.session_state.populator.read_students_to_accommodate(st.session_state.occupant_data)
+        st.session_state.populator.refresh_df_students_to_accommodate()
+        st.write("File processing complete")
+
+    st.session_state.file_processed = True
 
 def get_page():
     return st.session_state.page
