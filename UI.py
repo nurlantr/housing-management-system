@@ -15,8 +15,6 @@ def build_dormitory():
         if block.active:   
             blocks_ref[block.blockID] = Dormitory.Block(block.blockID, list(block.floors), [1, block.rooms], block.places)
     st.session_state.nu = Dormitory(blocks_ref, st.session_state.excluded_data)
-    st.write(st.session_state.nu)
-    print(st.session_state.nu)
 
 # Define the Block class
 class Block:
@@ -32,6 +30,12 @@ class Block:
 def init_session_state():
     st.set_page_config(layout="wide")
     # Initialize session state
+    if 'populate_clicked' not in st.session_state:
+        st.session_state.populate_clicked = False
+    if 'get_rooms_clicked' not in st.session_state:
+        st.session_state.get_rooms_clicked = False
+    if 'get_students_clicked' not in st.session_state:
+        st.session_state.get_students_clicked = False
     if 'configured_blocks' not in st.session_state:
         st.session_state.configured_blocks = []
     if 'generate' not in st.session_state:
@@ -80,11 +84,6 @@ def reset_dormitory():
 
 def reset_block(block):
     st.session_state.pop(block.blockID, None)
-
-@st.cache_data
-def load_data(file): 
-    data = pd.read_excel(BytesIO(file.read()), engine="openpyxl")
-    return data
 
 # Generate dormitory based on block range
 def generate_dormitory(block_range):
@@ -226,8 +225,8 @@ def populate_details():
         col3.multiselect("Occupancy", options=[0,1,2,3,4], default=[0,1,2,3,4], key = 'occupancy_room')
         col4.multiselect("Gender", options=["Male", "Female"], default=["Male", "Female"], key = 'gender_room')
         col5.text_input("Room", placeholder="Example: 903", key = '_room')
-        g_room = st.form_submit_button("Get Rooms", on_click=get_rooms) 
-        if g_room:
+        st.form_submit_button("Get Rooms", on_click=get_rooms) 
+        if st.session_state.get_rooms_clicked:
             st.dataframe(st.session_state.filtered_rooms_df)
     with st.form(key="students"): 
         col1, col2, col3, col4= st.columns(4) 
@@ -235,11 +234,18 @@ def populate_details():
         col2.multiselect("Degree", options=st.session_state.populator.df_students_to_accommodate["Degree"].unique(), default=st.session_state.populator.df_students_to_accommodate["Degree"].unique(), key = 'degree_student') 
         col3.multiselect("Year", options=st.session_state.populator.df_students_to_accommodate["Year"].unique(), default=st.session_state.populator.df_students_to_accommodate["Year"].unique(), key = 'year_student')
         col4.text_input("Student ID", placeholder="Comma-Sep, Example: 202085777", key = '_student')
-        g_student = st.form_submit_button("Get Students", on_click=get_students)
-        if g_student:
+        st.form_submit_button("Get Students", on_click=get_students)
+        if st.session_state.get_students_clicked:
             st.dataframe(st.session_state.filtered_students_df)
-        
+    
+    st.button("Populate", help = "Populate", on_click = populate, key = 'populate')
+    if st.session_state.populate_clicked:
+        st.write("Populated")
+def populate():
+    st.session_state.populate_clicked = True
+    st.session_state.populator.populate(st.session_state.filtered_students_list, st.session_state.filtered_rooms_list)        
 def get_rooms():
+    st.session_state.get_rooms_clicked = True
     block_list = st.session_state.block_list_room
     floor_list = st.session_state.floor_list_room
     occupancy_list = st.session_state.occupancy_room
@@ -252,6 +258,7 @@ def get_rooms():
     st.session_state.filtered_rooms_df, st.session_state.filtered_rooms_list = st.session_state.populator.get_rooms(block_list, floor_list, occupancy_list, gender, room)
 
 def get_students():
+    st.session_state.get_students_clicked = True
     gender = st.session_state.gender_student
     degree = st.session_state.degree_student
     year = st.session_state.year_student
