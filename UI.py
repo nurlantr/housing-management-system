@@ -213,14 +213,9 @@ def populate_details():
     st.markdown("---")
     # button_container = st.container
     st.write("Create student pairs") 
-<<<<<<< Updated upstream
-    st.button("Pair", help = "Create student pairings", on_click = pair_roomates, key = 'pair_roomates')
-    st.session_state.populator.student_ids_to_destroy
-=======
     if st.button("Pair", help = "Create student pairings", on_click = pair_roomates, key = 'pair_roomates'):
         st.write("Student pairs created")
     # st.session_state.populator.student_ids_to_destroy
->>>>>>> Stashed changes
     st.markdown("---")
     st.write("Settle roomates to the already accomodated") 
     if st.button("Подселить", help = "Подселить руммейтов к живущим", on_click = settle_roomates, key = 'settle_roomates'):
