@@ -30,6 +30,7 @@ class Block:
 
 
 def init_session_state():
+    st.set_page_config(layout="wide")
     # Initialize session state
     if 'configured_blocks' not in st.session_state:
         st.session_state.configured_blocks = []
@@ -100,7 +101,7 @@ def dormitory_generator_page():
     st.title("Dormitory Generator")
     st.write("Welcome to the Dormitory Generator page!")
     # Add a double-ended slider representing a range between 22 and 27
-    slider_value = st.slider("Select a block range", min_value=22, max_value=27, value=st.session_state.my_slider_value, on_change=callbackSlider)
+    slider_value = st.slider("Select a block range", min_value=22, max_value=27, value=st.session_state.my_slider_value, on_change=callbackSlider, key = "block_range_slider")
     st.session_state.my_slider_value = slider_value
 
     # Add a button to generate the dormitory
@@ -174,7 +175,6 @@ def populator_page():
     ROOM_COLUMNS = ["Block", "Room", "ID", "Gender"] 
     OCCUPANT_COLUMNS = ["ID", "Gender", "Degree", "Year", "Roomate1", "Roomate2", "Roomate3"] 
 
-    st.title("2. Uploading Data") 
     # Define flags for mandatory files in order to use it in the last step 
     flagRooms = False 
     flagOccupants = False 
@@ -182,7 +182,7 @@ def populator_page():
     col1, col2= st.columns(2) 
     # First sub-header and file uploader for room occupancy data 
     with col1: 
-        st.header("Заполненность комнат(xls, xlsx)") 
+        st.header("Заполненность комнат") 
         st.session_state.room_data = st.file_uploader("Upload First Excel file", type=["xls", "xlsx"], on_change=callback_rdataUpload)
         if st.session_state.room_data is not None: 
             rooms_df = load_data(st.session_state.room_data)
@@ -190,13 +190,15 @@ def populator_page():
 
     # Second sub-header and file uploader for list of occupants 
     with col2: 
-        st.header("Список заселяемых(xls, xlsx)") 
+        st.header("Список заселяемых") 
         st.session_state.occupant_data = st.file_uploader("Upload Second Excel file", type=["xls", "xlsx"]) 
                      
     # Add button to submit uploaded files 
     upload_button = st.button("Загрузить", key="upload", on_click= callbackUpload) 
     # Handle button click event 
     if upload_button: 
+        if not st.session_state.build:
+            st.error("Please build dormitory first")
         if st.session_state.room_data is not None: 
             st.write("Загружен файл", st.session_state.room_data)
             # Process room data file 
@@ -226,31 +228,44 @@ def populator_page():
                 st.error(f"Invalid columns in 'Список заселяемых' file. Expected columns: {OCCUPANT_COLUMNS}") 
         else: 
             st.error("Please upload the file 'Список заселяемых'") 
+        if st.session_state.build:
+            file_processing()
+            populate_details()
 
-        file_processing()
+def populate_details():
     st.markdown("---")
     # button_container = st.container
-    st.write("Create pairings and Settle the roomates")
-    c1, c2 = st.columns(2)
-    c1.button("Pair", help = "Create student pairings", on_click = pair_roomates)
-    c2.button("Подселить", help = "Подселить руммейтов к живущим", on_click = settle_roomates)
+    st.write("Create student pairs") 
+    st.button("Pair", help = "Create student pairings", on_click = pair_roomates)
+    st.markdown("---")
+    st.write("Settle roomates to the already accomodated") 
+    st.button("Подселить", help = "Подселить руммейтов к живущим", on_click = settle_roomates)
     st.markdown("---")
     with st.form(key="rooms"): 
         col1, col2, col3, col4, col5 = st.columns([2,2,2,2,1]) 
-        col1.multiselect("List of blocks", options=st.session_state.nu.rooms.keys(),default=st.session_state.nu.rooms.keys())
-        col2.multiselect("List of floors", options=range(2, 13),default=range(2, 13)) 
-        col4.multiselect("Gender", options=["Male", "Female"], default=["Male", "Female"])
-        col3.multiselect("Occupancy", options=[0,1,2,3,4], default=[0,1,2,3,4])
-        col5.text_input("Room", placeholder="Example: 903")
-        st.form_submit_button("Get Rooms") 
-    
+        block_list_room = col1.multiselect("List of blocks", options=st.session_state.nu.rooms.keys(),default=st.session_state.nu.rooms.keys(), key = "block_list")
+        floor_list_room = col2.multiselect("List of floors", options=range(2, 13),default=range(2, 13)) 
+        occupancy_room = col3.multiselect("Occupancy", options=[0,1,2,3,4], default=[0,1,2,3,4])
+        gender_room = col4.multiselect("Gender", options=["Male", "Female"], default=["Male", "Female"])
+        _room = col5.text_input("Room", placeholder="Example: 903")
+        g_room = st.form_submit_button("Get Rooms", on_click=get_rooms) 
+        if g_room:
+            pass
     with st.form(key="students"): 
         col1, col2, col3, col4= st.columns(4) 
-        col1.multiselect("Gender", options=["Male", "Female"], default=["Male", "Female"])
-        col2.multiselect("Degree", options=st.session_state.populator.df_students_to_accommodate["Degree"].unique(), default=st.session_state.populator.df_students_to_accommodate["Degree"].unique()) 
-        col3.multiselect("Year", options=st.session_state.populator.df_students_to_accommodate["Year"].unique(), default=st.session_state.populator.df_students_to_accommodate["Year"].unique())
-        col4.text_input("Student ID", placeholder="Example: 202085777")
-        st.form_submit_button("Get Students")
+        gender_student = col1.multiselect("Gender", options=["Male", "Female"], default=["Male", "Female"])
+        degree_student = col2.multiselect("Degree", options=st.session_state.populator.df_students_to_accommodate["Degree"].unique(), default=st.session_state.populator.df_students_to_accommodate["Degree"].unique()) 
+        year_student = col3.multiselect("Year", options=st.session_state.populator.df_students_to_accommodate["Year"].unique(), default=st.session_state.populator.df_students_to_accommodate["Year"].unique())
+        _student = col4.text_input("Student ID", placeholder="Example: 202085777")
+        g_student = st.form_submit_button("Get Students", on_click=get_students)
+        if g_student:
+            pass
+        
+def get_rooms():
+    pass
+
+def get_students():
+    pass
 
 def pair_roomates():
     st.session_state.populator.match_roommates()
@@ -259,6 +274,7 @@ def settle_roomates():
     st.session_state.populator.assign_roomate()
         
 def file_processing():
+    
     st.session_state.populator = Populator(init_session_state.nu)
     st.session_state.populator.update_dorm(st.session_state.room_data)
     st.session_state.populator.read_students_to_accommodate(st.session_state.occupant_data)
