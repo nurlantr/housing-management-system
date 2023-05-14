@@ -53,6 +53,7 @@ class Room:
         if self.capacity == 0:
             raise ValueError(f"Room {self.block_number}.{self.number} is full")
         if new_student in self.students:
+            print(new_student)
             raise ValueError(f"Student {new_student.id} is already in room {self.block_number}.{self.number}")
         if self.gender is not None and self.gender != new_student.gender:
             raise ValueError(f"Student {new_student.id} has gender {new_student.gender} and it doesn't match Room {self.block_number}.{self.number} gender {self.gender}")

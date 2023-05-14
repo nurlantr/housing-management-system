@@ -56,6 +56,7 @@ def init_session_state():
         st.session_state.excluded_data = None
 
 def callbackUpload():
+    file_processing()
     st.session_state.upload_clicked = True
 
 def callback_rdataUpload():
@@ -193,7 +194,7 @@ def populator_page():
     # Add button to submit uploaded files 
     upload_button = st.button("Загрузить", key="upload", on_click= callbackUpload) 
     # Handle button click event 
-    if upload_button: 
+    if st.session_state.upload_clicked: 
         if not st.session_state.build:
             st.error("Please build dormitory first")
         if st.session_state.room_data is not None: 
@@ -207,17 +208,16 @@ def populator_page():
             st.error("Please upload the file 'Список заселяемых'") 
             
         if st.session_state.build:
-            file_processing()
             populate_details()
 
 def populate_details():
     st.markdown("---")
     # button_container = st.container
     st.write("Create student pairs") 
-    st.button("Pair", help = "Create student pairings", on_click = pair_roomates, key = pair_roomates)
+    st.button("Pair", help = "Create student pairings", on_click = pair_roomates, key = 'pair_roomates')
     st.markdown("---")
     st.write("Settle roomates to the already accomodated") 
-    st.button("Подселить", help = "Подселить руммейтов к живущим", on_click = settle_roomates, key = settle_roomates)
+    st.button("Подселить", help = "Подселить руммейтов к живущим", on_click = settle_roomates, key = 'settle_roomates')
     st.markdown("---")
     with st.form(key="rooms"): 
         col1, col2, col3, col4, col5 = st.columns([2,2,2,2,1]) 
@@ -266,7 +266,7 @@ def pair_roomates():
     st.session_state.populator.match_roommates()
 
 def settle_roomates():
-    st.session_state.populator.assign_roomate()
+    st.session_state.populator.assign_roommate()
         
 def file_processing():
     st.session_state.populator = Populator(st.session_state.nu)
