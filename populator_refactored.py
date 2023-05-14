@@ -159,7 +159,7 @@ class Populator:
 		print("Done assigning roommates to those who already had rooms.")
 		print("Number of successful accommodations", number_of_accommodations)
 			
-	def get_rooms(self, block_list: list[int], floor_list: list[int], occupancy: list[int], gender: list[str], specific_room: int | None = None) -> list[Room]:
+	def get_rooms(self, block_list: list[int], floor_list: list[int], occupancy: list[int], gender: list[str], specific_room: int | None = None) -> tuple[pd.DataFrame, list[Room]]:
 		print("Getting rooms...")
 		print('Parameters:')
 		print('    block_list:', block_list)
@@ -190,7 +190,10 @@ class Populator:
 		
 		print("List of rooms:", list_of_rooms)
 		
-		return list_of_rooms
+		data = [(room.block_number, room.number, room.gender, str(room.students)) for room in list_of_rooms]
+		df = pd.DataFrame(data, columns=['Block', 'Room', 'Gender', 'Students'])
+
+		return df, list_of_rooms
 
 	def refresh_df_students_to_accommodate(self):
 		self.student_ids_to_accommodate = [student.id for student in self.students.values() if student.room is None]
@@ -202,7 +205,7 @@ class Populator:
 		self.df_students_to_accommodate.Room = self.df_students_to_accommodate.Room.astype(int)
 		self.df_students_to_accommodate.Id = self.df_students_to_accommodate.Id.astype(int)
 
-	def filter_students(self, gender: list[str], degree: list[str], year: list[str], ids: list[int] | None = None, to_data_frame: bool = True) -> pd.DataFrame | list[int]:
+	def filter_students(self, gender: list[str], degree: list[str], year: list[str], ids: list[int] | None = None) -> tuple[pd.DataFrame, list[int]]:
 		self.refresh_df_students_to_accommodate()
 		df = self.df_students_to_accommodate
 
@@ -211,11 +214,9 @@ class Populator:
 		if ids is not None:
 			df = df[df['Id'].isin(ids)]
 
-		if to_data_frame:
-			return df
-		else:
-			return df['Id'].tolist()
-
+		
+		return df, df['Id'].tolist()
+		
 	def populate(self, student_ids_to_populate: list[int], rooms_list: list[Room], random: bool = True):
 		print("Poppulating...")
 		if random:

@@ -205,13 +205,7 @@ def populator_page():
             rooms_df = load_data(st.session_state.room_data) 
             st.write(rooms_df)
             # Validate column names 
-            if set(rooms_df.columns) == set(ROOM_COLUMNS): 
-                flagRooms = True 
-                st.write("Первый файл сохранен") 
-                #ЗДЕСЬ ДОЛЖНА БЫТЬ ВЫЗВАНА ФУНКЦИЯ ЧТЕНИЯ ЗАНЯТЫХ КОМНАТ С АРГУМЕНТОМ room_df 
-                # Call your function with the room data as argument 
-            else: 
-                st.error(f"Invalid columns in 'Заполненность комнат' file. Expected columns: {ROOM_COLUMNS}") 
+            
         else: 
             st.error("Please upload the file 'Заполненность комнат'") 
 
@@ -243,29 +237,46 @@ def populate_details():
     st.markdown("---")
     with st.form(key="rooms"): 
         col1, col2, col3, col4, col5 = st.columns([2,2,2,2,1]) 
-        block_list_room = col1.multiselect("List of blocks", options=st.session_state.nu.rooms.keys(),default=st.session_state.nu.rooms.keys(), key = "block_list")
-        floor_list_room = col2.multiselect("List of floors", options=range(2, 13),default=range(2, 13)) 
-        occupancy_room = col3.multiselect("Occupancy", options=[0,1,2,3,4], default=[0,1,2,3,4])
-        gender_room = col4.multiselect("Gender", options=["Male", "Female"], default=["Male", "Female"])
-        _room = col5.text_input("Room", placeholder="Example: 903")
+        col1.multiselect("List of blocks", options=st.session_state.nu.rooms.keys(),default=st.session_state.nu.rooms.keys(), key = "block_list_room")
+        col2.multiselect("List of floors", options=range(2, 13),default=range(2, 13), key = 'floor_list_room') 
+        col3.multiselect("Occupancy", options=[0,1,2,3,4], default=[0,1,2,3,4], key = 'occupancy_room')
+        col4.multiselect("Gender", options=["Male", "Female"], default=["Male", "Female"], key = 'gender_room')
+        col5.text_input("Room", placeholder="Example: 903", key = '_room')
         g_room = st.form_submit_button("Get Rooms", on_click=get_rooms) 
         if g_room:
-            pass
+            st.dataframe(st.session_state.filtered_rooms_df)
     with st.form(key="students"): 
         col1, col2, col3, col4= st.columns(4) 
-        gender_student = col1.multiselect("Gender", options=["Male", "Female"], default=["Male", "Female"])
-        degree_student = col2.multiselect("Degree", options=st.session_state.populator.df_students_to_accommodate["Degree"].unique(), default=st.session_state.populator.df_students_to_accommodate["Degree"].unique()) 
-        year_student = col3.multiselect("Year", options=st.session_state.populator.df_students_to_accommodate["Year"].unique(), default=st.session_state.populator.df_students_to_accommodate["Year"].unique())
-        _student = col4.text_input("Student ID", placeholder="Example: 202085777")
+        col1.multiselect("Gender", options=["Male", "Female"], default=["Male", "Female"], key='gender_student')
+        col2.multiselect("Degree", options=st.session_state.populator.df_students_to_accommodate["Degree"].unique(), default=st.session_state.populator.df_students_to_accommodate["Degree"].unique(), key = 'degree_student') 
+        col3.multiselect("Year", options=st.session_state.populator.df_students_to_accommodate["Year"].unique(), default=st.session_state.populator.df_students_to_accommodate["Year"].unique(), key = 'year_student')
+        col4.text_input("Student ID", placeholder="Comma-Sep, Example: 202085777", key = '_student')
         g_student = st.form_submit_button("Get Students", on_click=get_students)
         if g_student:
-            pass
+            st.dataframe(st.session_state.filtered_students_df)
         
 def get_rooms():
-    pass
+    block_list = st.session_state.block_list_room
+    floor_list = st.session_state.floor_list_room
+    occupancy_list = st.session_state.occupancy_room
+    gender = st.session_state.gender_room
+    room = st.session_state._room
+    if room != "":
+        room = int(room)
+    else:
+        room = None
+    st.session_state.filtered_rooms_df, st.session_state.filtered_rooms_list = st.session_state.populator.get_rooms(block_list, floor_list, occupancy_list, gender, room)
 
 def get_students():
-    pass
+    gender = st.session_state.gender_student
+    degree = st.session_state.degree_student
+    year = st.session_state.year_student
+    student_ids = st.session_state._student
+    if student_ids == "":
+        student_ids = None
+    else:
+        student_ids = [int(id) for id in student_ids.split(",")]
+    st.session_state.filtered_students_df, st.session_state.filtered_students_list = st.session_state.populator.filter_students(gender, degree, year, student_ids)
 
 def pair_roomates():
     st.session_state.populator.match_roommates()
@@ -274,7 +285,6 @@ def settle_roomates():
     st.session_state.populator.assign_roomate()
         
 def file_processing():
-    
     st.session_state.populator = Populator(init_session_state.nu)
     st.session_state.populator.update_dorm(st.session_state.room_data)
     st.session_state.populator.read_students_to_accommodate(st.session_state.occupant_data)
