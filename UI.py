@@ -56,15 +56,21 @@ def init_session_state():
         st.session_state.upload_clicked = False
     if "room_data_uploaded" not in st.session_state:
         st.session_state.room_data_uploaded = False
+    if "occupants_data_uploaded" not in st.session_state:
+        st.session_state.occupants_data_uploaded = False
     if 'excluded_data' not in st.session_state:
         st.session_state.excluded_data = None
 
 def callbackUpload():
-    file_processing()
     st.session_state.upload_clicked = True
 
 def callback_rdataUpload():
+    st.session_state.upload_clicked = False
     st.session_state.room_data_uploaded = True
+
+def callback_odataUpload():
+    st.session_state.upload_clicked = False
+    st.session_state.occupants_data_uploaded = True
 
 def callbackAdd():
     st.session_state.button_clicked = True
@@ -162,7 +168,7 @@ def dormitory_generator_page():
         st.markdown("---")      
         EXCEPTEDROOMS_COLUMNS = ["Block", "Room"]
         st.subheader("Список игнорируемых комнат(xls, xlsx)") 
-        st.session_state.excluded_data = st.file_uploader("Upload Third Excel file", type=["xls", "xlsx"]) 
+        st.session_state.excluded_data = st.file_uploader("Upload Excel file", type=["xls", "xlsx"]) 
         if st.session_state.excluded_data is not None: 
             st.write("Excluded rooms uploaded")
             
@@ -172,12 +178,7 @@ def dormitory_generator_page():
 # Page 2: Populator Page
 def populator_page():
     st.title("Populator Page")
-    ROOM_COLUMNS = ["Block", "Room", "ID", "Gender"] 
-    OCCUPANT_COLUMNS = ["ID", "Gender", "Degree", "Year", "Roomate1", "Roomate2", "Roomate3"] 
 
-    # Define flags for mandatory files in order to use it in the last step 
-    flagRooms = False 
-    flagOccupants = False 
     # Create two columns to center sub-headers and file uploaders 
     col1, col2= st.columns(2) 
     # First sub-header and file uploader for room occupancy data 
@@ -188,12 +189,18 @@ def populator_page():
     # Second sub-header and file uploader for list of occupants 
     with col2: 
         st.header("Список заселяемых") 
-        st.session_state.occupant_data = st.file_uploader("Upload Second Excel file", type=["xls", "xlsx"]) 
-                     
+        st.session_state.occupant_data = st.file_uploader("Upload Second Excel file", type=["xls", "xlsx"], on_change=callback_odataUpload) 
+
     # Add button to submit uploaded files 
-    upload_button = st.button("Загрузить", key="upload", on_click= callbackUpload) 
+    upload = st.button("Загрузить", key="upload", on_click= callbackUpload) 
     # Handle button click event 
+
     if st.session_state.upload_clicked: 
+        if st.session_state.build:
+            if st.session_state.room_data and st.session_state.occupant_data:
+                file_processing()
+                populate_details()
+
         if not st.session_state.build:
             st.error("Please build dormitory first")
         if st.session_state.room_data is not None: 
@@ -206,15 +213,13 @@ def populator_page():
         else: 
             st.error("Please upload the file 'Список заселяемых'") 
             
-        if st.session_state.build:
-            populate_details()
 
 def populate_details():
     st.markdown("---")
     # button_container = st.container
     st.write("Create student pairs") 
     st.button("Pair", help = "Create student pairings", on_click = pair_roomates, key = 'pair_roomates')
-    st.session_state.populator.student_ids_to_destroy
+    # st.session_state.populator.student_ids_to_destroy
     st.markdown("---")
     st.write("Settle roomates to the already accomodated") 
     st.button("Подселить", help = "Подселить руммейтов к живущим", on_click = settle_roomates, key = 'settle_roomates')
@@ -275,13 +280,17 @@ def pair_roomates():
 
 def settle_roomates():
     st.session_state.populator.assign_roommate()
-        
+
+@st.cache_data
+def update_dorm():
+    st.session_state.populator.update_dorm(st.session_state.room_data)
+
 def file_processing():
     st.session_state.populator = Populator(st.session_state.nu)
-    st.session_state.populator.update_dorm(st.session_state.room_data)
+    update_dorm()
     st.session_state.populator.read_students_to_accommodate(st.session_state.occupant_data)
     st.session_state.populator.refresh_df_students_to_accommodate()
-    
+
 def get_page():
     return st.session_state.page
 
