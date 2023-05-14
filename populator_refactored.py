@@ -300,6 +300,8 @@ class Populator:
 		
 		upload_df.to_excel('12345upload.xlsx', index=False)
 
+		return upload_df
+
 
 		
 
