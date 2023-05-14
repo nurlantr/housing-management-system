@@ -172,38 +172,34 @@ def populator_page():
     st.title("Populator Page")
     ROOM_COLUMNS = ["Block", "Room", "ID", "Gender"] 
     OCCUPANT_COLUMNS = ["ID", "Gender", "Degree", "Year", "Roomate1", "Roomate2", "Roomate3"] 
-     
 
     st.title("2. Uploading Data") 
     # Define flags for mandatory files in order to use it in the last step 
     flagRooms = False 
     flagOccupants = False 
-
     # Create two columns to center sub-headers and file uploaders 
     col1, col2= st.columns(2) 
-
     # First sub-header and file uploader for room occupancy data 
     with col1: 
         st.header("Заполненность комнат(xls, xlsx)") 
-        room_data = st.file_uploader("Upload First Excel file", type=["xls", "xlsx"], on_change=callback_rdataUpload)
-        if room_data is not None: 
-            rooms_df = load_data(room_data)
+        st.session_state.room_data = st.file_uploader("Upload First Excel file", type=["xls", "xlsx"], on_change=callback_rdataUpload)
+        if st.session_state.room_data is not None: 
+            rooms_df = load_data(st.session_state.room_data)
             st.write(rooms_df)
 
     # Second sub-header and file uploader for list of occupants 
     with col2: 
         st.header("Список заселяемых(xls, xlsx)") 
-        occupant_data = st.file_uploader("Upload Second Excel file", type=["xls", "xlsx"]) 
+        st.session_state.occupant_data = st.file_uploader("Upload Second Excel file", type=["xls", "xlsx"]) 
                      
     # Add button to submit uploaded files 
     upload_button = st.button("Загрузить", key="upload", on_click= callbackUpload) 
-
     # Handle button click event 
     if upload_button: 
-        if room_data is not None: 
-            st.write("Загружен файл", room_data)
+        if st.session_state.room_data is not None: 
+            st.write("Загружен файл", st.session_state.room_data)
             # Process room data file 
-            rooms_df = load_data(room_data) 
+            rooms_df = load_data(st.session_state.room_data) 
             st.write(rooms_df)
             # Validate column names 
             if set(rooms_df.columns) == set(ROOM_COLUMNS): 
@@ -216,9 +212,9 @@ def populator_page():
         else: 
             st.error("Please upload the file 'Заполненность комнат'") 
 
-        if occupant_data is not None: 
+        if st.session_state.occupant_data is not None: 
             # Process occupant data file 
-            occupants_df = load_data(occupant_data)
+            occupants_df = load_data(st.session_state.occupant_data)
             # Validate column names 
             if set(occupants_df.columns) == set(OCCUPANT_COLUMNS): 
                 flagOccupants = True 
@@ -230,7 +226,43 @@ def populator_page():
         else: 
             st.error("Please upload the file 'Список заселяемых'") 
 
+        file_processing()
+    st.markdown("---")
+    # button_container = st.container
+    st.write("Create pairings and Settle the roomates")
+    c1, c2 = st.columns(2)
+    c1.button("Pair", help = "Create student pairings", on_click = pair_roomates)
+    c2.button("Подселить", help = "Подселить руммейтов к живущим", on_click = settle_roomates)
+    st.markdown("---")
+    with st.form(key="rooms"): 
+        col1, col2, col3, col4, col5 = st.columns([2,2,2,2,1]) 
+        col1.multiselect("List of blocks", options=range(st.session_state.my_slider_value[0] , st.session_state.my_slider_value[1]+1),default= range(st.session_state.my_slider_value[0] , st.session_state.my_slider_value[1]+1))
+        col2.multiselect("List of floors", options=range(2, 13),default=range(2, 13)) 
+        col5.text_input("Room", placeholder="Example: 903")
+        col4.selectbox("Gender", options=["All", "Male", "Female"]) 
+        col3.number_input("Occupancy", min_value=0, max_value=4, value=1) 
+        st.form_submit_button("Get Rooms") 
+ 
+    with st.form(key="students"): 
+        degree_options = []
+        col1, col2, col3, col4= st.columns(4) 
+        col1.selectbox("Gender", options=["All", "Male", "Female"]) 
+        col2.selectbox("Degree", options=degree_options) 
+        col3.selectbox("Year", options=[1, 2, 3, 4]) 
+        col4.text_input("Student ID", placeholder="Example: 202085777")
+        st.form_submit_button("Get Students")
 
+def pair_roomates():
+    st.session.state.populator.match_roommates()
+
+def settle_roomates():
+    st.session.state.populator.assign_roomate()
+        
+def file_processing():
+    st.session.state.populator = Populator(init_session_state.nu)
+    st.session.state.populator.update_dorm(st.session_state.room_data)
+    st.session.state.populator.read_students_to_accommodate(st.session_state.occupant_data)
+    
 def get_page():
     return st.session_state.page
 
@@ -243,7 +275,7 @@ def render_page():
 
 def render_sidebar():
     st.sidebar.title("Sidebar")
-    options = ["Dormitory Generator", "Populator Page"]
+    options = ["Dormitory Generator", "Populator Page" ]
     page = st.sidebar.selectbox("Select a page", options)
 
     # Update the page in session state when selectbox value changes
