@@ -200,28 +200,15 @@ def populator_page():
         if not st.session_state.build:
             st.error("Please build dormitory first")
         if st.session_state.room_data is not None: 
-            st.write("Загружен файл", st.session_state.room_data)
-            # Process room data file 
-            rooms_df = load_data(st.session_state.room_data) 
-            st.write(rooms_df)
-            # Validate column names 
-            
+            st.write("Первый файл сохранен")         
         else: 
             st.error("Please upload the file 'Заполненность комнат'") 
 
         if st.session_state.occupant_data is not None: 
-            # Process occupant data file 
-            occupants_df = load_data(st.session_state.occupant_data)
-            # Validate column names 
-            if set(occupants_df.columns) == set(OCCUPANT_COLUMNS): 
-                flagOccupants = True 
-                st.write("Второй файл сохранен") 
-                #А ЗДЕСЬ ДОЛЖНА БЫТЬ ВЫЗВАНА ФУНКЦИЯ ЧТЕНИЯ СПИСКА ЗАСЕЛЯЕМЫХ С АРУГМЕНТОМ occupants_df 
-                # Call your function with the occupant data as argument 
-            else: 
-                st.error(f"Invalid columns in 'Список заселяемых' file. Expected columns: {OCCUPANT_COLUMNS}") 
+            st.write("Второй файл сохранен") 
         else: 
             st.error("Please upload the file 'Список заселяемых'") 
+            
         if st.session_state.build:
             file_processing()
             populate_details()
