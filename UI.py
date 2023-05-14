@@ -214,6 +214,7 @@ def populate_details():
     # button_container = st.container
     st.write("Create student pairs") 
     st.button("Pair", help = "Create student pairings", on_click = pair_roomates, key = 'pair_roomates')
+    st.session_state.populator.student_ids_to_destroy
     st.markdown("---")
     st.write("Settle roomates to the already accomodated") 
     st.button("Подселить", help = "Подселить руммейтов к живущим", on_click = settle_roomates, key = 'settle_roomates')
