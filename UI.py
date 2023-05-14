@@ -214,10 +214,10 @@ def populate_details():
     st.markdown("---")
     # button_container = st.container
     st.write("Create student pairs") 
-    st.button("Pair", help = "Create student pairings", on_click = pair_roomates)
+    st.button("Pair", help = "Create student pairings", on_click = pair_roomates, key = pair_roomates)
     st.markdown("---")
     st.write("Settle roomates to the already accomodated") 
-    st.button("Подселить", help = "Подселить руммейтов к живущим", on_click = settle_roomates)
+    st.button("Подселить", help = "Подселить руммейтов к живущим", on_click = settle_roomates, key = settle_roomates)
     st.markdown("---")
     with st.form(key="rooms"): 
         col1, col2, col3, col4, col5 = st.columns([2,2,2,2,1]) 
