@@ -156,34 +156,56 @@ class Populator:
 			for intended_roomate_id_to_accommodate in intended_roommate_ids_to_accommodate:
 				student.room.addStudent(self.students[intended_roomate_id_to_accommodate])
 			
-	def get_rooms(self, block_list: list[int], floor_list: list[int], size: int, gender: str | None = None) -> list[Room]:
+	def get_rooms(self, block_list: list[int], floor_list: list[int], size: int | None = None, gender: str | None = None, specific_room: int | None = None) -> list[Room]:
+		print("Getting rooms...")
+		print('Parameters:')
+		print('    block_list:', block_list)
+		print('    floor_list', floor_list)
+		print('    size:', size)
+		print('    gender:', gender)
+		print('    specific_room:', specific_room)
+
 		list_of_rooms: list[Room] = []
 		for block_num in block_list:
 			for room_num in self.dorm.rooms[block_num]:
+				
 				room = self.dorm.rooms[block_num][room_num]
 				
 				if (room_num // 100) not in floor_list:
 					continue
 				
-				if len(room.students) != size:
+				if size is not None and len(room.students) != size:
 					continue
 				
-				if size != 0 and gender is not None:
-					if gender != room.gender:
+				if room.gender is not None and gender is not None and gender != room.gender:
 						continue
-				
-				list_of_rooms.append(room)
 
+				if specific_room is not None and room_num != specific_room:
+					continue
+
+				list_of_rooms.append(room)
+		
+		print("List of rooms:", list_of_rooms)
+		
 		return list_of_rooms
 
 	def get_df_students_to_accommodate(self) -> pd.DataFrame:
-		data = [(student.id, student.gender, student.degree, student.year) for student in [self.students[id] for id in self.student_ids_to_accommodate]]
-		columns = ['Id', 'Gender', 'Degree', 'Year']
-		return pd.DataFrame(data, columns = columns)
+		data = [(student.id, student.gender, student.degree, student.year, str(student.intended_roommate_ids)) for student in [self.students[id] for id in self.student_ids_to_accommodate]]
+		columns = ['Id', 'Gender', 'Degree', 'Year', 'Intended Roommates']
+		
+		df = pd.DataFrame(data, columns = columns)
+		df.Block = df.Block.astype(int)
+		df.Room = df.Room.astype(int)
+		df.Id = df.Id.astype(int)
+		return df
 
-	def filter_students(self, gender: list[str], degree: list[str], year: list[str], to_data_frame: bool = True) -> pd.DataFrame | list[int]:
+	def filter_students(self, gender: list[str], degree: list[str], year: list[str], ids: list[int] | None = None, to_data_frame: bool = True) -> pd.DataFrame | list[int]:
 		df = self.get_df_students_to_accommodate()
+		
 		df = df[(df['Gender'].isin(gender)) & (df['Degree'].isin(degree)) & (df['Year'].isin(year))]
+		if ids is not None:
+			df = df[df['Id'].isin(ids)]
+
 		if to_data_frame:
 			return df
 		else:

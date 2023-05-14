@@ -5,6 +5,8 @@ class Dormitory:
         # self.num_blocks = 2
         for block_idx in range(23, 28): #range(1, self.num_blocks + 1):
             for i in range(2, 13):
+                if block_idx == 23 and i == 2: continue
+                if block_idx == 24 and i == 2: continue
                 for j in range(1, 29):
                     self.rooms[f"{block_idx}.{i*100 + j}"] = Room(f"{block_idx}.{i*100 + j}")
 
@@ -30,29 +32,29 @@ class Dormitory:
         return result
 
     def get_rooms(self, begin, end, size = 0):
-        empty_rooms = []
+        rooms = []
         for room in self.rooms.values():
             if int(room.number[0:2]) in range(begin, end + 1):
                 if len(room.students) == size:
-                    empty_rooms.append(room.number)
+                    rooms.append(room.number)
         
-        return empty_rooms
+        return rooms
 
 class Student:
-    def __init__(self, id: str, gender: str, degree: str | None = None, year: str | None = None, roomate_ids: List[str] | None = None):
+    def __init__(self, id: str, gender: str, degree: str | None = None, year: str | None = None, intended_roomate_ids: List[str] | None = None):
         self.id = id
         self.gender = gender
         self.degree = degree
         self.year = year
-        self.roomate_ids = [] if roomate_ids is None else roomate_ids
+        self.intended_roomate_ids = [] if intended_roomate_ids is None else intended_roomate_ids
         self.roomates: List[Student] = []
         self.room: Room | None = None
 
     def __str__(self):
-        return  f"{self.id} " + self.gender + " " + str(self.roomate_ids)
+        return  f"{self.id} " + self.gender + " " + str(self.intended_roomate_ids)
 
     def __repr__(self):
-        return f" {self.id} " + self.gender + " " + str(self.roomate_ids)
+        return f" {self.id} " + self.gender + " " + str(self.intended_roomate_ids)
 
     def __eq__(self, other: object) -> bool:
         if isinstance(other, Student):
@@ -94,7 +96,4 @@ class Room:
 
         if len(self.students) == 0:
             self.gender = None
-
-
-
         
