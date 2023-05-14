@@ -3,7 +3,8 @@ import pandas as pd
 from populator_refactored import Populator
 from models_refactored import Dormitory
 from io import BytesIO
-blocks = []
+
+blocks: list['Block'] = []
 
 def build_dormitory():
     st.session_state.build = True
@@ -236,32 +237,31 @@ def populator_page():
     st.markdown("---")
     with st.form(key="rooms"): 
         col1, col2, col3, col4, col5 = st.columns([2,2,2,2,1]) 
-        col1.multiselect("List of blocks", options=range(st.session_state.my_slider_value[0] , st.session_state.my_slider_value[1]+1),default= range(st.session_state.my_slider_value[0] , st.session_state.my_slider_value[1]+1))
+        col1.multiselect("List of blocks", options=st.session_state.nu.rooms.keys(),default=st.session_state.nu.rooms.keys())
         col2.multiselect("List of floors", options=range(2, 13),default=range(2, 13)) 
+        col4.multiselect("Gender", options=["Male", "Female"], default=["Male", "Female"])
+        col3.multiselect("Occupancy", options=[0,1,2,3,4], default=[0,1,2,3,4])
         col5.text_input("Room", placeholder="Example: 903")
-        col4.selectbox("Gender", options=["All", "Male", "Female"]) 
-        col3.number_input("Occupancy", min_value=0, max_value=4, value=1) 
         st.form_submit_button("Get Rooms") 
- 
+    
     with st.form(key="students"): 
-        degree_options = []
         col1, col2, col3, col4= st.columns(4) 
-        col1.selectbox("Gender", options=["All", "Male", "Female"]) 
-        col2.selectbox("Degree", options=degree_options) 
-        col3.selectbox("Year", options=[1, 2, 3, 4]) 
+        col1.multiselect("Gender", options=["Male", "Female"], default=["Male", "Female"])
+        col2.multiselect("Degree", options=st.session_state.populator.df_students_to_accommodate["Degree"].unique(), default=st.session_state.populator.df_students_to_accommodate["Degree"].unique()) 
+        col3.multiselect("Year", options=st.session_state.populator.df_students_to_accommodate["Year"].unique(), default=st.session_state.populator.df_students_to_accommodate["Year"].unique())
         col4.text_input("Student ID", placeholder="Example: 202085777")
         st.form_submit_button("Get Students")
 
 def pair_roomates():
-    st.session.state.populator.match_roommates()
+    st.session_state.populator.match_roommates()
 
 def settle_roomates():
-    st.session.state.populator.assign_roomate()
+    st.session_state.populator.assign_roomate()
         
 def file_processing():
-    st.session.state.populator = Populator(init_session_state.nu)
-    st.session.state.populator.update_dorm(st.session_state.room_data)
-    st.session.state.populator.read_students_to_accommodate(st.session_state.occupant_data)
+    st.session_state.populator = Populator(init_session_state.nu)
+    st.session_state.populator.update_dorm(st.session_state.room_data)
+    st.session_state.populator.read_students_to_accommodate(st.session_state.occupant_data)
     
 def get_page():
     return st.session_state.page
