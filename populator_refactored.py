@@ -1,15 +1,19 @@
 from models_refactored import *
 from random import shuffle
 import pandas as pd
+import numpy as np
 class Populator:
 	def __init__(self, dorm: Dormitory):
+		print(f"Initializing populator")
 		self.dorm = dorm
 		self.students: dict[int, Student] = {}
 		self.student_ids_with_rooms: list[int] = []
 		self.student_ids_to_accommodate: list[int] = []
 		self.student_ids_to_destroy: dict[int, str] = {}
+		self.applied_student_ids_without_rooms: list[int] = []
 
 	def update_dorm(self, dorm_input_file):
+		print(f"Updating dormitory with")
 		df = pd.read_excel(dorm_input_file) # Header: Block, Room, ID, Gender, Degree, Year
 		if df.shape[1] != 6:
 			raise ValueError(f'Number of columns should be 6')
@@ -32,6 +36,7 @@ class Populator:
 			self.dorm.rooms[row['Block']][row['Room']].addStudent(new_student)
 	
 	def read_students_to_accommodate(self, students_input_file):
+		print(f"Reading students to accommodate")
 		df = pd.read_excel(students_input_file)
 		if df.shape[1] != 7:
 			raise ValueError(f'Number of columns should be 7')
@@ -62,6 +67,8 @@ class Populator:
 			else:
 				self.students[id] = Student(id, gender, degree, year, roommates)
 				self.student_ids_to_accommodate.append(id)
+		
+		self.applied_student_ids_without_rooms = self.student_ids_to_accommodate
 
 	def match_roommates(self):
 		for student in self.students.values():
@@ -184,8 +191,6 @@ class Populator:
 
 				list_of_rooms.append(room)
 		
-		print("List of rooms:", list_of_rooms)
-		
 		data = [(room.block_number, room.number, room.gender, str(room.students)) for room in list_of_rooms]
 		df = pd.DataFrame(data, columns=['Block', 'Room', 'Gender', 'Students'])
 
@@ -259,9 +264,46 @@ class Populator:
 		return were_not_populated
 	
 	def to_upload_file(self):
-		accommodated_student_ids = set(id for id in self.students.keys() if self.students[id].room is not None) - set(self.student_ids_with_rooms)
-		pass
+		accommodated_student_ids = {id for id in self.applied_student_ids_without_rooms if self.students[id].room is not None}
+		columns = [
+			'ID card/Номер ID карты*', # ID
+			'IIN/ИИН**',
+			'Lastname/Фамилия***',
+			'Firstname/Имя***',
+			'Complex/Комплекс*', # Block num
+			'Bulding (Block)/Блок*', # Block num
+			'Object number/Номер объекта*', # Room num
+			'Place number/Номер места*', # Place
+			'Start date/Дата заселения*',
+			'End date/Дата выселения*',
+			'Comment/Комментарий',
+			'Reasons for accomodation/Основание заселения',
+			'Type of accomodation/Тип заселения*',
+			'Number of the agreement/Номер договора',
+			'Date of the agreement/Дата договора',
+			'Cost of living/Стоимость проживания',
+			'Discount/Скидка'
+		]
+
+		upload_df = pd.DataFrame(columns = columns, index=range(len(accommodated_student_ids)))
+		index = 0
+		for block_num in self.dorm.rooms.keys():
+			for room in self.dorm.rooms[block_num].values():
+				for i in range(len(room.students)):
+					student = room.students[i]
+					
+					if student.id not in accommodated_student_ids:
+						continue
+					
+					upload_df.iloc[index, :] = pd.Series([student.id] + [np.nan] * 3 + [f'Блок {block_num}'] * 2 + [room.number] + [i + 1] + [np.nan] * 9)
+					index += 1
 		
+		upload_df.to_excel('12345upload.xlsx', index=False)
+
+
+		
+
+
 			
 	
 		
