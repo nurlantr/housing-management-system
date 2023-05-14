@@ -1,5 +1,5 @@
 import pandas as pd
-    
+
 class Dormitory:
     class Block:
         def __init__(self, number: int, floor_range: list[int], room_range: list[int], room_capacity: int):
