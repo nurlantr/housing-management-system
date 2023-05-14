@@ -1,6 +1,21 @@
 import streamlit as st
 import pandas as pd 
+from populator_refactored import Populator
+from models_refactored import Dormitory
 from io import BytesIO
+blocks = []
+
+def build_dormitory():
+    st.session_state.build = True
+    
+    # all functions of processing
+    blocks_ref = {}
+    for block in blocks:
+        if block.active:   
+            blocks_ref[block.blockID] = Dormitory.Block(block.blockID, list(block.floors), [1, block.rooms], block.places)
+    st.session_state.nu = Dormitory(blocks_ref, st.session_state.excluded_data)
+    st.write(st.session_state.nu)
+    print(st.session_state.nu)
 
 # Define the Block class
 class Block:
@@ -11,12 +26,16 @@ class Block:
         self.rooms = rooms
         self.places = places
 
-blocks = []
+
 
 def init_session_state():
     # Initialize session state
+    if 'configured_blocks' not in st.session_state:
+        st.session_state.configured_blocks = []
     if 'generate' not in st.session_state:
         st.session_state.generate = False
+    if 'build' not in st.session_state:
+        st.session_state.build = False
     if 'blocks' not in st.session_state:
         st.session_state.blocks = []
     if 'page' not in st.session_state:
@@ -31,6 +50,8 @@ def init_session_state():
         st.session_state.upload_clicked = False
     if "room_data_uploaded" not in st.session_state:
         st.session_state.room_data_uploaded = False
+    if 'excluded_data' not in st.session_state:
+        st.session_state.excluded_data = None
 
 def callbackUpload():
     st.session_state.upload_clicked = True
@@ -139,10 +160,11 @@ def dormitory_generator_page():
         st.markdown("---")      
         EXCEPTEDROOMS_COLUMNS = ["Block", "Room"]
         st.subheader("Список игнорируемых комнат(xls, xlsx)") 
-        excluded_data = st.file_uploader("Upload Third Excel file", type=["xls", "xlsx"]) 
-        if excluded_data is not None: 
-            pass
-        
+        st.session_state.excluded_data = st.file_uploader("Upload Third Excel file", type=["xls", "xlsx"]) 
+        if st.session_state.excluded_data is not None: 
+            st.write("Excluded rooms uploaded")
+            
+        st.button("Build",help= "Build dormitory", on_click=build_dormitory)
         
         
 # Page 2: Populator Page
