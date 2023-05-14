@@ -8,7 +8,7 @@ class Populator:
 		self.student_ids_with_rooms: list[int] = []
 		self.student_ids_to_accommodate: list[int] = []
 		self.student_ids_to_destroy: dict[int, str] = {}
-	
+
 	def update_dorm(self, dorm_input_file):
 		df = pd.read_excel(dorm_input_file) # Header: Block, Room, ID, Gender, Degree, Year
 		if df.shape[1] != 6:
@@ -257,7 +257,11 @@ class Populator:
 		print("    Student IDs were not populated:", were_not_populated)
 		
 		return were_not_populated
-			
+	
+	def to_upload_file(self):
+		accommodated_student_ids = set(id for id in self.students.keys() if self.students[id].room is not None) - set(self.student_ids_with_rooms)
+		pass
+		
 			
 	
 		
