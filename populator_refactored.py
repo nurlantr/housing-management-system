@@ -39,9 +39,6 @@ class Populator:
 		# More Data Transformations (if needed)
 		# -------------------------------------
 		df.Id = df.Id.astype(int)
-		df.Roommate1 = df.Roommate1.astype(int)
-		df.Roommate2 = df.Roommate2.astype(int)
-		df.Roommate3 = df.Roommate3.astype(int)
 
 		self.student_ids_with_rooms = []
 		self.student_ids_to_accommodate = []
@@ -53,7 +50,7 @@ class Populator:
 			roommates = []
 			for i in range(1, 4):
 				if not pd.isna(row[f'Roommate{i}']):
-					roommates.append(row[f'Roommate{i}'])
+					roommates.append(int(row[f'Roommate{i}']))
 			
 			if id in self.students: # Student already in dorm
 				if len(roommates) == 0:
