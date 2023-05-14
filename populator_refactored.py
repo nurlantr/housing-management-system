@@ -201,9 +201,6 @@ class Populator:
 		columns = ['Id', 'Gender', 'Degree', 'Year', 'Intended Roommates']
 		
 		self.df_students_to_accommodate = pd.DataFrame(data, columns = columns)
-		self.df_students_to_accommodate.Block = self.df_students_to_accommodate.Block.astype(int)
-		self.df_students_to_accommodate.Room = self.df_students_to_accommodate.Room.astype(int)
-		self.df_students_to_accommodate.Id = self.df_students_to_accommodate.Id.astype(int)
 
 	def filter_students(self, gender: list[str], degree: list[str], year: list[str], ids: list[int] | None = None) -> tuple[pd.DataFrame, list[int]]:
 		self.refresh_df_students_to_accommodate()

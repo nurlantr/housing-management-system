@@ -184,9 +184,6 @@ def populator_page():
     with col1: 
         st.header("Заполненность комнат") 
         st.session_state.room_data = st.file_uploader("Upload First Excel file", type=["xls", "xlsx"], on_change=callback_rdataUpload)
-        if st.session_state.room_data is not None: 
-            rooms_df = load_data(st.session_state.room_data)
-            st.write(rooms_df)
 
     # Second sub-header and file uploader for list of occupants 
     with col2: 
@@ -272,9 +269,10 @@ def settle_roomates():
     st.session_state.populator.assign_roomate()
         
 def file_processing():
-    st.session_state.populator = Populator(init_session_state.nu)
+    st.session_state.populator = Populator(st.session_state.nu)
     st.session_state.populator.update_dorm(st.session_state.room_data)
     st.session_state.populator.read_students_to_accommodate(st.session_state.occupant_data)
+    st.session_state.populator.refresh_df_students_to_accommodate()
     
 def get_page():
     return st.session_state.page
