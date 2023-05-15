@@ -254,7 +254,7 @@ def populate_details():
     st.button("Populate", help = "Populate", on_click = populate, key = 'populate')
     if st.session_state.populate_clicked:
         st.write("Populated") 
-        upload_df = st.session_state.populator.to_upload_file()
+        upload_df = get_upload_df()
         buffer = BytesIO()
         with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
             # Write each dataframe to a different worksheet.
@@ -273,9 +273,9 @@ def populate_details():
             )
         # st.download_button(label = "Получить файл заливки", data = csv, help = "Скачать CSV файл заливки", file_name='Файл_заливки.csv', mime='text/csv')
 
-# @st.cache_data
-# def convert_df(df):
-#     return df.to_csv().encode('utf-8-sig')
+@st.cache_data
+def get_upload_df():
+    return st.session_state.populator.to_upload_file()
 
 def populate():
     if st.session_state.get_rooms_clicked and st.session_state.get_students_clicked:
