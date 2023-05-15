@@ -254,12 +254,28 @@ def populate_details():
     st.button("Populate", help = "Populate", on_click = populate, key = 'populate')
     if st.session_state.populate_clicked:
         st.write("Populated") 
-        csv = convert_df(st.session_state.populator.to_upload_file())
-        st.download_button(label = "Получить файл заливки", data = csv, help = "Скачать CSV файл заливки", file_name='Файл_заливки.csv', mime='text/csv')
+        upload_df = st.session_state.populator.to_upload_file()
+        buffer = BytesIO()
+        with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
+            # Write each dataframe to a different worksheet.
+            upload_df.to_excel(writer, sheet_name='Sheet1', index=False)
+    
 
-@st.cache_data
-def convert_df(df):
-    return df.to_csv().encode('utf-8-sig')
+            # Close the Pandas Excel writer and output the Excel file to the buffer
+            writer.close()
+
+            st.download_button(
+                label="Получить файл заливки",
+                data=buffer,
+                help = "Скачать CSV файл заливки",
+                file_name='Файл_заливки.xlsx',
+                mime="application/vnd.ms-excel"
+            )
+        # st.download_button(label = "Получить файл заливки", data = csv, help = "Скачать CSV файл заливки", file_name='Файл_заливки.csv', mime='text/csv')
+
+# @st.cache_data
+# def convert_df(df):
+#     return df.to_csv().encode('utf-8-sig')
 
 def populate():
     if st.session_state.get_rooms_clicked and st.session_state.get_students_clicked:
