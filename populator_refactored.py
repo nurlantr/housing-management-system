@@ -304,6 +304,11 @@ class Populator:
 		
 		upload_df.to_excel('upload_file.xlsx', index=False)
 
+
+		# Also save info about pair destruction reasons to excel
+		destructions = pd.DataFrame({'StudentID': self.student_ids_to_destroy.keys(), 'Reason': self.student_ids_to_destroy.values()})
+		destructions.to_excel('destructions.xlsx', index=False)
+		
 		return upload_df
 
 
