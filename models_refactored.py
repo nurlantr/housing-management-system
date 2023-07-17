@@ -4,7 +4,7 @@ class Dormitory:
     class Block:
         def __init__(self, number: int, room_list: list[int], room_capacity: int):
             self.number = number
-            self.room_list = room_list
+            self.room_list = sorted(room_list)
             self.room_capacity = room_capacity
         
     def __init__(self, blocks: dict[int, Block], excluded_rooms_file: str | None = None) -> None:

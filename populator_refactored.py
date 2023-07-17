@@ -302,8 +302,13 @@ class Populator:
 					upload_df.iloc[index, :] = pd.Series([student.id] + [np.nan] * 3 + [f'Блок {block_num}'] * 2 + [room.number] + [i + 1] + [np.nan] * 9)
 					index += 1
 		
-		upload_df.to_excel('12345upload.xlsx', index=False)
+		upload_df.to_excel('upload_file.xlsx', index=False)
 
+
+		# Also save info about pair destruction reasons to excel
+		destructions = pd.DataFrame({'StudentID': self.student_ids_to_destroy.keys(), 'Reason': self.student_ids_to_destroy.values()})
+		destructions.to_excel('destructions.xlsx', index=False)
+		
 		return upload_df
 
 
