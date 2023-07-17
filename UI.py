@@ -323,7 +323,9 @@ def settle_roomates():
 def file_processing():
     if not st.session_state.file_processed:
         st.session_state.populator = Populator(st.session_state.nu)
+        # TODO: add condition to skip
         st.session_state.populator.update_dorm(st.session_state.room_data)
+        # --------------------
         st.session_state.populator.read_students_to_accommodate(st.session_state.occupant_data)
         st.session_state.populator.refresh_df_students_to_accommodate()
         st.write("File processing complete")
