@@ -23,7 +23,8 @@ def build_dormitory():
     if not st.session_state.build:
         blocks_ref = {}
         for block in blocks:
-            if block.active:   
+            if block.active:
+                # ПОМЕНЯЯЯЯЯЯЯЯЯЯЯТЬ
                 blocks_ref[block.blockID] = Dormitory.Block(block.blockID, list(block.floors), [1, block.rooms], block.places)
         st.session_state.nu = Dormitory(blocks_ref, st.session_state.excluded_data)
     
