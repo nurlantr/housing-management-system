@@ -17,28 +17,48 @@ def get_more_blocks(excel_file) -> dict[int, list[int]]:
     
     return new_blocks
 
+# def get_more_blocks(excel_file) -> dict[int, list[tuple[int, int]]]:
+#     df = pd.read_excel(excel_file)
+#     df = df.iloc[:-1,:] # last row is total
     
+#     df['№ комнаты'] = df['№ комнаты'].astype(int) # convert to int
+#     df['Общ. кол-во мест'] = df['Общ. кол-во мест'].astype(int) # convert to int
+    
+#     df = df.groupby('Здание').agg({'№ комнаты': list, 'Общ. кол-во мест': list})
+
+#     # combine two columns into one using a size two tuple
+#     df['room_cap'] = df.apply(lambda row: list(zip(row['№ комнаты'], row['Общ. кол-во мест'])), axis=1)
+
+#     new_blocks = {}
+#     for block in df.index:
+#         new_blocks[int(block[5:])] = df.loc[block, 'room_cap']
+    
+#     return new_blocks
 
 def build_dormitory():
     if not st.session_state.build:
         blocks_ref = {}
-        for block in blocks:
-            if block.active:
-                # ПОМЕНЯЯЯЯЯЯЯЯЯЯЯТЬ
-                blocks_ref[block.blockID] = Dormitory.Block(block.blockID, list(block.floors), [1, block.rooms], block.places)
+        for block in st.session_state.blocks:
+            # ПОМЕНЯЯЯЯЯЯЯЯЯЯЯТЬ
+            blocks_ref[block.blockID] = Dormitory.Block(block.blockID, block.rooms, block.places)
         st.session_state.nu = Dormitory(blocks_ref, st.session_state.excluded_data)
-    
+        print(st.session_state.nu)
     st.session_state.build = True
 
 
 # Define the Block class
 class Block:
-    def __init__(self, blockID, active, floors, rooms, places):
+    # def __init__(self, blockID : int, active : bool, floors, rooms : list[int], places: int):
+    #     self.blockID = blockID
+    #     self.active = active
+    #     self.floors = floors
+    #     self.rooms = rooms
+    #     self.places = places
+    def __init__(self, blockID : int, rooms : list[int], places: int):
         self.blockID = blockID
-        self.active = active
-        self.floors = floors
         self.rooms = rooms
         self.places = places
+        self.mutable = True
 
 
 def init_session_state():
@@ -62,8 +82,10 @@ def init_session_state():
         st.session_state.page = "Dormitory Generator" 
     if 'my_slider_value' not in st.session_state:
         st.session_state.my_slider_value = (22, 27)
-    if "button_clicked" not in st.session_state:
-        st.session_state.button_clicked = False
+    if "addBlock_button_clicked" not in st.session_state:
+        st.session_state.addBlock_button_clicked = False
+    if "addBlocks_button_clicked" not in st.session_state:
+        st.session_state.addBlocks_button_clicked = False
     if "newblockID" not in st.session_state:
         st.session_state.newblockID = 0
     if "upload_clicked" not in st.session_state:
@@ -72,6 +94,8 @@ def init_session_state():
         st.session_state.room_data_uploaded = False
     if "occupants_data_uploaded" not in st.session_state:
         st.session_state.occupants_data_uploaded = False
+    if 'custom_blocks' not in st.session_state:
+        st.session_state.custom_blocks = None
     if 'excluded_data' not in st.session_state:
         st.session_state.excluded_data = None
     if 'paired_roomates' not in st.session_state:
@@ -92,9 +116,15 @@ def callback_odataUpload():
     st.session_state.upload_clicked = False
     st.session_state.occupants_data_uploaded = True
 
-def callbackAdd():
-    st.session_state.button_clicked = True
+def callbackAddBlock():
+    st.session_state.addBlock_button_clicked = True
 
+def callbackRemoveBlock(block):
+    pass
+
+def callbackAddBlocks():
+    st.session_state.addBlocks_button_clicked = True
+    
 def callbackGenerate():
     st.session_state.generate = True
 
@@ -110,6 +140,7 @@ def reset_dormitory():
 
 def reset_block(block):
     st.session_state.pop(block.blockID, None)
+    
 
 # Generate dormitory based on block range
 def generate_dormitory(block_range):
@@ -119,81 +150,165 @@ def generate_dormitory(block_range):
         blocks.append(block)
         if block.blockID not in st.session_state:
             st.session_state[block.blockID] = block
-
     return blocks
+
+def generate_dormitory_fixed(block_range : tuple[int, int], floors_range : tuple[int, int], rooms_range : int):
+    for blockID in range(block_range[0], block_range[1] + 1):
+        # Create list of rooms in the block with consideration of the number of floors and rooms per floor. Floor indicates first part of the room number, room index at the floor indicates second part of the room number
+        rooms: list[int] = generate_rooms(floors_range, (1, rooms_range))
+        if(blockID != 22):
+            block = Block(blockID, rooms, 2)
+        else:
+            block = Block(blockID, rooms, 3)
+        blocks.append(block)
+        if block.blockID not in st.session_state:
+            st.session_state[block.blockID] = block
+    return blocks
+
+# Generate rooms based on floor range and room range
+def generate_rooms(floor_range: tuple[int, int], room_range: tuple[int, int]):
+    rooms: list[int] = []
+    for floor in range(floor_range[0], floor_range[1] + 1):
+        for room in range(room_range[0], room_range[1] + 1):
+            rooms.append(floor * 100 + room)
+    return rooms
 
 # Page 1: Dormitory Generator
 def dormitory_generator_page():
     st.title("Dormitory Generator")
-    st.write("Welcome to the Dormitory Generator page!")
+    #st.write("Welcome to the Dormitory Generator page!")
     # Add a double-ended slider representing a range between 22 and 27
-    slider_value = st.slider("Select a block range", min_value=22, max_value=27, value=st.session_state.my_slider_value, on_change=callbackSlider, key = "block_range_slider")
-    st.session_state.my_slider_value = slider_value
+    # slider_value = st.slider("Select a block range", min_value=22, max_value=27, value=st.session_state.my_slider_value, on_change=callbackSlider, key = "block_range_slider")
+    # st.session_state.my_slider_value = slider_value
 
+    st.header("Dormitory presets")
+    # Double Input Fields for block range, floor range, room range, and number of places
+    input_field_container = st.container()
+    with input_field_container:
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            # move text down
+            st.subheader("Block range")
+            st.subheader("Floor range")
+        with col2:
+            block_range_min = st.number_input("Min", min_value=19, max_value=28, value=22, step=1, key="block_range_min")
+            floor_range_min = st.number_input("Min", min_value=1, max_value=12, value=1, step=1, key="floor_range_min")
+        with col3:
+            block_range_max = st.number_input("Max", min_value=19, max_value=28, value=28, step=1, key="block_range_max")
+            floor_range_max = st.number_input("Max", min_value=1, max_value=12, value=12, step=1, key="floor_range_max")
+        rooms_per_floor = st.number_input("Rooms per floor", min_value=1, max_value=28, value=28, step=1, key="rooms_per_floor")
+            
     # Add a button to generate the dormitory
     generate = st.button("Generate", help="Generate the dormitory configuration", on_click=callbackGenerate)
     st.markdown("---")
-    if st.session_state.generate:
-        if generate:
-            reset_dormitory()
-        blocks = generate_dormitory(st.session_state.my_slider_value)
-        blocks += st.session_state.blocks
-        blocks.sort(key=lambda x: x.blockID)
-
-        # Render the generated dormitory
-        st.header("Сonfiguration")
-        for block in blocks:
-            # Use the block ID as the expand trigger
-            expander = st.expander("Block "+str(block.blockID), expanded=False, )
-            with expander:
-                # Use input fields to edit the fields of each block
-                block.active = st.checkbox("Active", value=st.session_state[block.blockID].active, key="active"+str(block.blockID))
-                if not block.active:
-                    continue
-                block.floors = st.slider("Floors", min_value=2, max_value=12, value=st.session_state[block.blockID].floors, key="floor"+str(block.blockID))
-                block.rooms = st.number_input("Rooms per Floor", min_value=1, max_value=28, value=st.session_state[block.blockID].rooms, key="room"+str(block.blockID))
-                block.places = st.number_input("Students per Room", min_value=1, max_value=4, value=st.session_state[block.blockID].places, key="place"+str(block.blockID))
-
-        #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-        st.markdown("---")      
-        button_container = st.container()
-        with button_container:
-            col1, col2 = st.columns(2)
-            with col1:
-                # Add a "Save" button that updates the dormitory data
-                if st.button("Save", help="Save the dormitory configuration"):
-                    # Perform some action for Button 1
-                    st.write("Configuration saved")
-                    for block in blocks:
-                        st.session_state[block.blockID] = block
-            with col2:
-                subcol1, subcol2 = st.columns(2)
-                with subcol1:
-                    addBtn_container = st.container()
-                    add = addBtn_container.button("Add Block", help="Add a new block to the dormitory", on_click=callbackAdd)
-                    if add:
-                        invaid = False
-                        for block in blocks:
-                            if block.blockID == st.session_state.newblockID:
-                                addBtn_container.error("Block already exists")
-                                invaid = True
-                        if not invaid:
-                            newblock = Block(st.session_state.newblockID, True, (2, 12), 28, 2)
-                            st.session_state[newblock.blockID] = newblock
-                            st.session_state.blocks.append(newblock)
-                            st.experimental_rerun()
-                with subcol2:
-                    st.session_state.newblockID = st.number_input(label="tmp",help="Enter block ID to add",label_visibility= "collapsed",min_value=19, max_value=27, key = "AddBlockInp")
-        #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-        st.markdown("---")      
-        EXCEPTEDROOMS_COLUMNS = ["Block", "Room"]
-        st.subheader("Список игнорируемых комнат(xls, xlsx)") 
-        st.session_state.excluded_data = st.file_uploader("Upload Excel file", type=["xls", "xlsx"]) 
-        if st.session_state.excluded_data is not None: 
-            st.write("Excluded rooms uploaded")
-            
-        st.button("Build",help= "Build dormitory", on_click=build_dormitory)
+    blocks = []
+    if generate:
+        #Deprecated# blocks = generate_dormitory(st.session_state.my_slider_value)
+        blocks = generate_dormitory_fixed(block_range=(block_range_min, block_range_max), floors_range=(floor_range_min, floor_range_max), rooms_range=rooms_per_floor)
+        st.session_state.blocks = blocks
+    blocks = st.session_state.blocks
+    blocks.sort(key=lambda x: x.blockID)
+    # remove blocks that are in st.session_state.blocks_to_remove
+    # if "blocks_to_remove" in st.session_state:
+    #     for block in st.session_state.blocks_to_remove:
+    #         blocks.remove(block)
+    #         reset_block(block)
+    #     st.session_state.blocks_to_remove.clear()
         
+    # Render the generated dormitory
+    st.header("Сonfiguration")
+    for block in blocks:
+        # Use the block ID as the expand trigger
+        suffix = " Custom " if not block.mutable else ""
+        expander = st.expander("Block "+str(block.blockID)+ suffix, expanded=False)
+        with expander:
+            # Use input fields to edit the fields of each block
+            #---Deprecated---# block.active = st.checkbox("Active", value=st.session_state[block.blockID].active, key="active"+str(block.blockID))
+            #---Deprecated---# if not block.active:
+            #---Deprecated---#     continue
+            if block.mutable:
+                floor_range : tuple[int, int] = st.slider("Floors", min_value=2, max_value=12, value = (floor_range_min, floor_range_max), key="floor"+str(block.blockID))
+                room_range: int = st.number_input("Rooms per Floor", min_value=1, max_value=28, value = rooms_per_floor, key="room"+str(block.blockID))
+                block.rooms = generate_rooms(floor_range, (1, room_range))
+                block.places = st.number_input("Students per Room", min_value=1, max_value=4, value=st.session_state[block.blockID].places, key="place"+str(block.blockID))
+            else:
+                st.write("Rooms: ", block.rooms)
+                # change expander title text to include "(custom)" if the block is not mutable
+                
+                
+            # add a button to remove this block from the blocks list
+            removeBlock = st.button("Remove Block", help="Remove this block from the dormitory", key="remove"+str(block.blockID))
+            if removeBlock:
+                st.session_state.blocks.remove(block)
+                st.experimental_rerun()
+
+    #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------#
+    st.markdown("---")      
+    button_container = st.container()
+    with button_container:
+        col1, col2 = st.columns(2)
+        with col1:
+            subcol1, subcol2 = st.columns(2)
+            with subcol1:
+                # file upload to get new block data
+                st.session_state.custom_blocks = st.file_uploader("Upload Excel file of blocks data", type=["xls", "xlsx"])
+                if st.session_state.custom_blocks is not None: 
+                    st.write("Custom blocks uploaded")
+            with subcol2:
+                # button that converts obtained data into a new blocks 
+                addBlocks = st.button("Add Custom Blocks", help="Add custom blocks to the dormitory", on_click=callbackAddBlocks)
+                if addBlocks and st.session_state.custom_blocks is not None:
+                    blocks_dic = get_more_blocks(st.session_state.custom_blocks)
+                    # traverse the dictionary (key = blockID, value = rooms) and create new blocks and add them to the session state
+                    for blockID, rooms in blocks_dic.items():
+                        newblock = Block(blockID, rooms, 4)
+                        newblock.mutable = False
+                        st.session_state[newblock.blockID] = newblock
+                        # traverse the blocks comparing blockIDs and at match with newblock.blockID replace the old block with the new one
+                        for oldBlock in blocks:
+                            if oldBlock.blockID == newblock.blockID:
+                                st.session_state.blocks.remove(oldBlock)
+                        st.session_state.blocks.append(newblock)
+                    st.experimental_rerun()
+        # TODO: Adapt code to new block class
+        # TODO: Remove block button
+        # TODO: Custom blocks imutable
+        with col2:
+            subcol1, subcol2 = st.columns(2)
+            with subcol1:
+                addBtn_container = st.container()
+                add = addBtn_container.button("Add Block", help="Add a new block to the dormitory", on_click=callbackAddBlock)
+                if add:
+                    invaid = False
+                    for block in blocks:
+                        if block.blockID == st.session_state.newblockID:
+                            addBtn_container.error("Block already exists")
+                            invaid = True
+                    if not invaid:
+                        newblock = Block(st.session_state.newblockID, generate_rooms((2, 12), (1, 28)), 2)
+                        st.session_state[newblock.blockID] = newblock
+                        st.session_state.blocks.append(newblock)
+                        st.experimental_rerun()
+            with subcol2:
+                st.session_state.newblockID = st.number_input(label="tmp",help="Enter block ID to add",label_visibility= "collapsed",min_value=11, max_value=27, key = "AddBlockInp")
+    #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    st.markdown("---")      
+    # Add a "Save" button that updates the dormitory data
+    if st.button("Save", help="Save the dormitory configuration"):
+        # Perform some action for Button 1
+        st.write("Configuration saved")
+        for block in blocks:
+            st.session_state[block.blockID] = block
+    st.markdown("---")      
+    EXCEPTEDROOMS_COLUMNS = ["Block", "Room"]
+    st.subheader("Список игнорируемых комнат(xls, xlsx)") 
+    st.session_state.excluded_data = st.file_uploader("Upload Excel file", type=["xls", "xlsx"]) 
+    if st.session_state.excluded_data is not None: 
+        st.write("Excluded rooms uploaded")
+        
+    build = st.button("Build",help= "Build dormitory", on_click=build_dormitory)
+    if build:
+        st.write("Dormitory built")
         
 # Page 2: Populator Page
 def populator_page():
@@ -219,8 +334,8 @@ def populator_page():
             st.error("Please build dormitory first")
         if st.session_state.room_data is not None: 
             st.write("Первый файл сохранен")         
-        else: 
-            st.error("Please upload the file 'Заполненность комнат'") 
+        # else: 
+        #     st.error("Please upload the file 'Заполненность комнат'") 
 
         if st.session_state.occupant_data is not None: 
             st.write("Второй файл сохранен") 
@@ -228,7 +343,7 @@ def populator_page():
             st.error("Please upload the file 'Список заселяемых'") 
         
         if st.session_state.build:
-            if st.session_state.room_data and st.session_state.occupant_data:
+            if st.session_state.occupant_data:
                 file_processing()
                 populate_details()
 
@@ -338,7 +453,8 @@ def file_processing():
     if not st.session_state.file_processed:
         st.session_state.populator = Populator(st.session_state.nu)
         # TODO: add condition to skip
-        st.session_state.populator.update_dorm(st.session_state.room_data)
+        if st.session_state.room_data is not None:
+            st.session_state.populator.update_dorm(st.session_state.room_data)
         # --------------------
         st.session_state.populator.read_students_to_accommodate(st.session_state.occupant_data)
         st.session_state.populator.refresh_df_students_to_accommodate()
