@@ -6,6 +6,19 @@ from io import BytesIO
 
 blocks: list['Block'] = []
 
+def get_more_blocks(excel_file) -> dict[int, list[int]]:
+    df = pd.read_excel(excel_file)
+    df = df.iloc[:-1,:] # last row is total
+    df['№ комнаты'] = df['№ комнаты'].astype(int) # convert to int
+    df = df.groupby('Здание').agg({'№ комнаты': list})
+    new_blocks = {}
+    for block in df.index:
+        new_blocks[int(block[5:])] = df.loc[block, '№ комнаты']
+    
+    return new_blocks
+
+    
+
 def build_dormitory():
     if not st.session_state.build:
         blocks_ref = {}

@@ -38,9 +38,9 @@ class Populator:
 	def read_students_to_accommodate(self, students_input_file):
 		print(f"Reading students to accommodate")
 		df = pd.read_excel(students_input_file)
-		if df.shape[1] != 7:
-			raise ValueError(f'Number of columns should be 7')
-		df.columns = ['Id', 'Gender', 'Degree', 'Year', 'Roommate1', 'Roommate2', 'Roommate3']
+		if df.shape[1] != 6:
+			raise ValueError(f'Number of columns should be 6')
+		df.columns = ['Id', 'Gender', 'Degree', 'Year', 'Roommate1', 'Roommate2']
 		if df[['Id', 'Gender', 'Degree', 'Year']].isnull().sum().sum() > 0:
 			raise ValueError(f'Following rows contain null values {df[df[["Id", "Gender", "Degree", "Year"]].isnull().any(axis=1)].index.tolist()}')
 		# -------------------------------------
@@ -55,9 +55,13 @@ class Populator:
 			degree = row['Degree']
 			year = row['Year']
 			roommates = []
-			for i in range(1, 4):
+			for i in range(1, 3):
 				if not pd.isna(row[f'Roommate{i}']):
-					roommates.append(int(row[f'Roommate{i}']))
+					try:
+						roomate_id = int(row[f'Roommate{i}'])
+					except ValueError:
+						continue
+					roommates.append(roomate_id)
 			
 			if id in self.students: # Student already in dorm
 				if len(roommates) == 0:

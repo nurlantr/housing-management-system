@@ -2,10 +2,9 @@ import pandas as pd
 
 class Dormitory:
     class Block:
-        def __init__(self, number: int, floor_range: list[int], room_range: list[int], room_capacity: int):
+        def __init__(self, number: int, room_list: list[int], room_capacity: int):
             self.number = number
-            self.floor_range = floor_range
-            self.room_range = room_range
+            self.room_list = room_list
             self.room_capacity = room_capacity
         
     def __init__(self, blocks: dict[int, Block], excluded_rooms_file: str | None = None) -> None:
@@ -19,11 +18,10 @@ class Dormitory:
 
         for block in self.blocks.values():
             self.rooms[block.number] = {}
-            for floor in range(block.floor_range[0], block.floor_range[1] + 1):
-                for room in range(block.room_range[0], block.room_range[1] + 1):
-                    if f"{block.number}.{floor * 100 + room}" in self.excluded_rooms:
-                        continue
-                    self.rooms[block.number][floor * 100 + room] = Room(floor * 100 + room, block.number, block.room_capacity)
+            for room in block.room_list:
+                if f"{block.number}.{room}" in self.excluded_rooms:
+                    continue
+                self.rooms[block.number][room] = Room(room, block.number, block.room_capacity)
 
     def __str__(self):
         result = "Dormitory:\n"
