@@ -402,7 +402,6 @@ def populate_details():
             )
         # st.download_button(label = "Получить файл заливки", data = csv, help = "Скачать CSV файл заливки", file_name='Файл_заливки.csv', mime='text/csv')
 
-@st.cache_data
 def get_upload_df():
     return st.session_state.populator.to_upload_file()
 
